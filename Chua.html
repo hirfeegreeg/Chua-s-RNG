@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lucky Orbs — Full Cosmetic System</title>
+<title>Lucky Orbs v2.1 — Full Cosmetic System</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -11,39 +11,66 @@
   --muted:rgba(255,255,255,0.66); --text:#e6eef8; --radius:14px; --max-width:1200px; --orb-size:220px;
   font-family:Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-body{margin:0;background:linear-gradient(180deg,var(--bg) 0%, #03121a 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:24px}
+body{
+  margin:0;
+  background:linear-gradient(180deg,var(--bg) 0%, #03121a 100%);
+  color:var(--text);
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:24px;
+  transition: background 0.4s ease;
+}
 .app{width:100%;max-width:var(--max-width)}
 header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
 h1{margin:0;font-size:20px}
 p.lead{margin:0;color:var(--muted);font-size:13px}
 .layout{display:grid;grid-template-columns:320px 1fr 360px;gap:16px}
-.card{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border:1px solid rgba(255,255,255,0.04);padding:16px;border-radius:var(--radius);box-shadow:0 10px 40px rgba(2,6,23,0.6)}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border:1px solid rgba(255,255,255,0.04);padding:16px;border-radius:var(--radius);box-shadow:0 10px 40px rgba(2,6,23,0.6);transition:all 0.3s ease}
 .left .profile{display:flex;align-items:center;gap:12px}
-.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0ea5a4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800}
+.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0ea5a4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;transition:transform 0.3s ease}
+.avatar:hover{transform:scale(1.1)}
 
 .orb-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
-.orb{width:var(--orb-size);height:var(--orb-size);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(2,6,23,0.6)}
-.orb .skin{position:absolute;inset:0;background-size:cover;background-position:center;transform-origin:center;transition:transform 600ms cubic-bezier(.2,.9,.2,1)}
+.orb{
+  width:var(--orb-size);height:var(--orb-size);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  box-shadow:0 30px 80px rgba(2,6,23,0.6);
+  transition:transform 0.4s ease;
+}
+.orb .skin{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  transform-origin:center;
+  transition:transform 600ms cubic-bezier(.2,.9,.2,1);
+  border-radius:50%;
+}
 .orb .overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.18))}
 .orb .center{position:relative;z-index:5;text-align:center}
 .value{font-size:44px;font-weight:800;letter-spacing:1px}
-.rarity{font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px;display:inline-block;margin-top:8px}
+.rarity{font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px;display:inline-block;margin-top:8px;transition:all 0.3s ease}
 
 .controls{display:flex;gap:10px;align-items:center}
-.btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
+.btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:all 0.2s ease}
 .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;box-shadow:0 14px 36px rgba(124,58,237,0.14)}
+.btn-primary:hover{transform:scale(1.05)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
+.btn-ghost:hover{background:rgba(255,255,255,0.05);transform:scale(1.05)}
 
-.shop-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
-.skin-thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.03)}
+.shop-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);transition:all 0.2s ease}
+.shop-item:hover{background:rgba(255,255,255,0.03);transform:translateY(-2px);}
+.skin-thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.03);background-size:cover;transition:all 0.3s ease}
+.skin-thumb:hover{transform:scale(1.1)}
 .skin-meta{flex:1;display:flex;justify-content:space-between;align-items:center}
 
 .log{height:240px;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;font-family:monospace;font-size:13px}
 .skin-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
-.skin-list div{display:flex;justify-content:space-between;align-items:center}
+.skin-list div{display:flex;justify-content:space-between;align-items:center;transition:all 0.2s ease}
+.skin-list div:hover{background:rgba(255,255,255,0.03);border-radius:8px}
 
 .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
-@keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.05)}100%{transform:rotate(360deg) scale(1)}}
 
 @keyframes rainbowMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .skin-animated{background-size:200% 200%;animation:rainbowMove 6s linear infinite}
@@ -55,8 +82,8 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="app">
 <header>
   <div>
-    <h1>Lucky Orbs — Cosmetic System</h1>
-    <p class="lead">Own skins, equip them, negative rarities, high score per minute!</p>
+    <h1>Lucky Orbs v2.1 — Cosmetic System</h1>
+    <p class="lead">All-new skins, animated effects, negative rarities, per-minute high scores, and shop improvements!</p>
   </div>
 </header>
 <div class="layout">
@@ -115,7 +142,7 @@ const ownedCountEl=document.getElementById('ownedCount');
 const skinPicker=document.getElementById('skinPicker');
 const achGrid=document.getElementById('achGrid');
 
-const KEY='lucky-orbs-fullcosmetic';
+const KEY='lucky-orbs-v2.1';
 const defaultState={
 balance:200,
 rolls:0,
@@ -133,6 +160,7 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY));state=s?{...de
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function rng(){const s=state.seed.split('').reduce((a,c)=>a+c.charCodeAt(0),0);const t=performance.now();const x=Math.sin(t*0.000021+s)*10000;return x-Math.floor(x)}
 
+// Added more skins with animations
 const generatedSkins={
 'classic':()=>`radial-gradient(circle at 30% 30%, #7c3aed,#3b82f6)`,
 'rainbow':()=>`conic-gradient(red,orange,yellow,green,blue,indigo,violet)`,
@@ -141,7 +169,9 @@ const generatedSkins={
 'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`,
 'sunrise':()=>`radial-gradient(circle at 50% 50%, #fb923c,#fcd34d)`,
 'ocean':()=>`radial-gradient(circle at 50% 50%, #3b82f6,#06b6d4)`,
-'electric':()=>`repeating-conic-gradient(#22d3ee 0 15deg, #facc15 15deg 30deg)`
+'electric':()=>`repeating-conic-gradient(#22d3ee 0 15deg, #facc15 15deg 30deg)`,
+'firework':()=>`radial-gradient(circle at 50% 50%, #f43f5e,#fbbf24,#22d3ee)`,
+'neon':()=>`linear-gradient(45deg, #0ff,#f0f,#ff0,#0f0)`
 };
 
 const shopItems=[
@@ -151,7 +181,9 @@ const shopItems=[
 {skin:'void',price:500},
 {skin:'sunrise',price:400},
 {skin:'ocean',price:250},
-{skin:'electric',price:600}
+{skin:'electric',price:600},
+{skin:'firework',price:700},
+{skin:'neon',price:800}
 ];
 
 function populateShop(){
@@ -182,6 +214,9 @@ function pushLog(txt){const n=document.createElement('div');n.textContent=txt;n.
 function rollOnce(){
 if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
 state.balance-=state.rollCost;state.rolls++;
+orbEl.classList.add('spin');
+setTimeout(()=>orbEl.classList.remove('spin'),2600);
+
 const r=Math.floor(rng()*100)+1;
 let points=0;let rarity='Common';
 
@@ -208,7 +243,6 @@ updateUI(); save();
 rollBtn.addEventListener('click',()=>rollOnce());
 multiBtn.addEventListener('click',()=>{for(let i=0;i<10;i++)rollOnce()});
 
-// Skin selector
 function populateSkinPicker(){
 skinPicker.innerHTML='';
 state.skinsOwned.forEach(skin=>{
@@ -244,7 +278,6 @@ populateShop();
 
 load();updateUI();
 
-// Per-minute reset
 setInterval(()=>{
 state.currentScore=0;
 state.seed=(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8);
