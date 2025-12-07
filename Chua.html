@@ -3,337 +3,509 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lucky Orbs — RNG Game</title>
+  <title>Lucky Orbs — Cosmetics & Skins (v2.0)</title>
+  <meta name="description" content="Lucky Orbs v2.0 — major UI/UX upgrades, advanced RNG, animated orb physics, cosmetics shop, filters, autoplay, confetti, sounds, keyboard shortcuts, and accessibility." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0f1724; --card:#0b1220; --accent:#7c3aed; --glass:rgba(255,255,255,0.06);
-      --success:#10b981; --danger:#ef4444; --muted:rgba(255,255,255,0.6);
-      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      --bg:#071029; --card:#071827; --accent:#7c3aed; --accent-2:#06b6d4; --muted:rgba(230,238,248,0.65);
+      --glass:rgba(255,255,255,0.04); --glass-2:rgba(255,255,255,0.02); --text:#e6eef8; --success:#10b981; --danger:#ef4444;
+      --radius:14px; --max-width:1200px; --orb-size:220px; --ui-gap:12px; --trans:300ms cubic-bezier(.2,.9,.2,1);
+      font-family:Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
+    [data-theme='sunrise']{ --bg:#fff7ed; --card:#fff; --accent:#fb923c; --accent-2:#ef4444; --text:#0b1020 }
+    [data-theme='midnight']{ --bg:#00121b; --card:#07132a; --accent:#06b6d4; --accent-2:#7c3aed; --text:#eaf6ff }
+
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; background:radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.12), transparent),
-      radial-gradient(800px 400px at 90% 90%, rgba(16,185,129,0.06), transparent), var(--bg);
-      color:#e6eef8; display:flex; align-items:center; justify-content:center; padding:32px;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
-    .wrap{width:100%; max-width:980px}
+    body{margin:0;background:radial-gradient(1200px 600px at 10% 10%,rgba(124,58,237,0.08),transparent), linear-gradient(180deg,var(--bg) 0%, #03121a 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:20px}
 
-    header{display:flex; gap:16px; align-items:center; margin-bottom:18px}
-    h1{margin:0; font-size:24px; letter-spacing:0.4px}
-    p.lead{margin:0; color:var(--muted); font-size:13px}
+    .app{width:100%;max-width:var(--max-width)}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
 
-    .grid{display:grid; grid-template-columns: 360px 1fr; gap:18px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border:1px solid rgba(255,255,255,0.04); padding:18px; border-radius:14px; box-shadow: 0 6px 30px rgba(2,6,23,0.6)}
+    .layout{display:grid;grid-template-columns:320px 1fr 380px;gap:16px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border:1px solid rgba(255,255,255,0.04);padding:16px;border-radius:var(--radius);box-shadow:0 12px 40px rgba(2,6,23,0.6)}
 
-    .panel{display:flex; flex-direction:column; gap:12px}
-    .orb{width:140px; height:140px; border-radius:50%; background:linear-gradient(180deg,#111827 0%, #0b1220 100%); display:flex; align-items:center; justify-content:center; margin:8px auto; position:relative; box-shadow: inset 0 -10px 30px rgba(0,0,0,0.6), 0 6px 30px rgba(124,58,237,0.12)}
-    .orb::after{content:''; position:absolute; inset:6px; border-radius:50%; background:conic-gradient(from 180deg at 50% 50%, rgba(124,58,237,0.12), transparent 60%);}
+    .profile{display:flex;align-items:center;gap:12px}
+    .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0ea5a4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800}
 
-    .value{font-size:34px; font-weight:700; letter-spacing:1px}
-    .rarity{font-weight:700; font-size:12px; padding:6px 10px; border-radius:999px; display:inline-block}
+    .orb-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+    .orb{width:var(--orb-size);height:var(--orb-size);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.03), transparent 10%);box-shadow:0 30px 80px rgba(2,6,23,0.6);transition:transform var(--trans)}
+    .orb:focus{outline:3px solid rgba(124,58,237,0.12)}
+    .orb .skin{position:absolute;inset:0;background-size:cover;background-position:center;transform-origin:center;transition:transform 600ms cubic-bezier(.2,.9,.2,1)}
+    .orb .overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.2))}
+    .orb .center{position:relative;z-index:5;text-align:center;pointer-events:none}
 
-    button.btn{appearance:none; border:0; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer}
-    .btn-roll{background:linear-gradient(90deg,var(--accent),#4c1d95); color:white; box-shadow: 0 8px 30px rgba(124,58,237,0.18)}
-    .btn-reset{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04)}
+    .value{font-size:44px;font-weight:800;letter-spacing:1px}
+    .rarity{font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px;display:inline-block;margin-top:8px}
 
-    .stats{display:flex; gap:8px; flex-wrap:wrap}
-    .stat{background:var(--glass); padding:8px 10px; border-radius:10px; min-width:110px}
-    .muted{color:var(--muted); font-size:13px}
+    .controls{display:flex;gap:10px;align-items:center}
+    .btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:transform 150ms,var(--trans)}
+    .btn:active{transform:translateY(1px) scale(0.997)}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;box-shadow:0 14px 36px rgba(124,58,237,0.14)}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
 
-    .log{height:220px; overflow:auto; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); padding:12px; border-radius:10px; font-family:monospace; font-size:13px}
+    .shop-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);transition:transform var(--trans),box-shadow var(--trans)}
+    .shop-item:hover{transform:translateY(-6px);box-shadow:0 14px 40px rgba(2,6,23,0.6)}
+    .skin-thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.03)}
+    .skin-meta{flex:1}
 
-    footer{margin-top:14px; display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:13px}
+    .theme-switcher{display:flex;gap:8px;align-items:center}
+    .theme-dot{width:14px;height:14px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,0.06)}
 
-    /* rarity colors */
-    .rar-common{background:rgba(255,255,255,0.04); color: #d1d5db}
-    .rar-rare{background:rgba(99,102,241,0.12); color:#c7d2fe}
-    .rar-epic{background:rgba(124,58,237,0.14); color:#ede9fe}
-    .rar-legend{background:linear-gradient(90deg,#f59e0b,#ef4444); color:#1f2937}
+    .log{height:220px;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;font-family:monospace;font-size:13px}
+
+    .skin-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+    .skin-actions{display:flex;gap:8px;align-items:center}
+    .badge{background:var(--glass);padding:6px 8px;border-radius:8px;font-weight:700}
+
+    .muted{color:var(--muted)}
 
     /* responsive */
-    @media (max-width:880px){.grid{grid-template-columns:1fr;}.orb{margin:0 auto}}
+    @media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 
-    /* subtle animations */
-    .spin{animation:spinAnim 1.2s cubic-bezier(.2,.9,.2,1)}
-    @keyframes spinAnim{0%{transform:rotate(0) scale(1)}50%{transform:rotate(15deg) scale(1.02)}100%{transform:rotate(0) scale(1)}}
+    /* animations */
+    .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
+    @keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg) scale(1)}}
+    .glow{box-shadow:0 0 40px rgba(124,58,237,0.22), inset 0 8px 40px rgba(124,58,237,0.06)}
 
-    .glow{box-shadow:0 0 40px rgba(124,58,237,0.18), inset 0 6px 28px rgba(124,58,237,0.06)}
+    .skin-animated-1{background:conic-gradient(from 120deg at 50% 50%, rgba(124,58,237,0.12), rgba(6,182,212,0.12), rgba(124,58,237,0.12)); animation:flow 6s linear infinite}
+    .skin-animated-2{background:linear-gradient(120deg,#ff7a18,#af002d 40%, #3a1c71 100%); animation:flow 10s linear infinite}
+    @keyframes flow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+    /* modal */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.5);opacity:0;pointer-events:none;transition:opacity 220ms}
+    .modal.open{opacity:1;pointer-events:auto}
+    .modal-card{background:var(--card);padding:20px;border-radius:12px;min-width:320px;max-width:90%;box-shadow:0 14px 50px rgba(2,6,23,0.6)}
+
+    /* subtle tooltip */
+    .tooltip{position:relative}
+    .tooltip[data-tip]:hover::after{content:attr(data-tip);position:absolute;white-space:nowrap;top:-34px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);padding:6px 8px;border-radius:6px;font-size:12px}
+
+    /* small controls */
+    .mini-row{display:flex;gap:8px;align-items:center}
+
+    /* shop grid */
+    .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    /* accessibility focus */
+    button:focus, select:focus, input:focus{outline:2px solid rgba(124,58,237,0.16)}
   </style>
 </head>
-<body>
-  <div class="wrap">
+<body data-theme="dark">
+  <div class="app" id="app">
     <header>
       <div>
-        <h1>Lucky Orbs</h1>
-        <p class="lead">A crispy little RNG web game — roll the orb, chase rarities, unlock streaks and beat your high score.</p>
+        <h1>Lucky Orbs — Skins & Cosmetics <span style="opacity:.6;font-size:12px">v2.0</span></h1>
+        <p class="lead">Major UI overhaul — improved RNG, orb physics, animated skins, shop filters, autoplay speed, sound effects, keyboard shortcuts and more.</p>
       </div>
-      <div style="margin-left:auto;text-align:right">
-        <div class="muted">Made with ❤️ — No libraries, fully client-side</div>
+
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <div class="mini-row" style="gap:12px">
+          <div class="theme-switcher" role="tablist" aria-label="Theme switcher">
+            <div title="Dark" class="theme-dot tooltip" style="background:linear-gradient(135deg,#0f1724,#0b1220)" data-theme="dark" data-tip="Dark theme"></div>
+            <div title="Midnight" class="theme-dot tooltip" style="background:linear-gradient(135deg,#00121b,#07132a)" data-theme="midnight" data-tip="Midnight theme"></div>
+            <div title="Sunrise" class="theme-dot tooltip" style="background:linear-gradient(135deg,#fff7ed,#ffedd5)" data-theme="sunrise" data-tip="Light theme"></div>
+          </div>
+
+          <div class="mini-row">
+            <button id="exportBtn" class="btn btn-ghost" aria-label="Export save">Export</button>
+            <button id="importBtn" class="btn btn-ghost" aria-label="Import save">Import</button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <div class="grid">
-      <section class="card">
-        <div class="panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div class="muted">Balance</div>
-              <div style="font-size:20px;font-weight:800">₱ <span id="balance">0</span></div>
-            </div>
-            <div style="text-align:right">
-              <div class="muted">High Score</div>
-              <div style="font-weight:800"> <span id="highscore">0</span> pts</div>
-            </div>
+    <div class="layout">
+      <!-- LEFT -->
+      <aside class="card left" aria-labelledby="profileHeading">
+        <div class="profile">
+          <div class="avatar" id="playerAvatar" aria-hidden="true">U</div>
+          <div>
+            <div id="playerName" style="font-weight:800">You</div>
+            <div class="muted">Balance: ₱<span id="balance">0</span></div>
           </div>
+        </div>
 
-          <div class="orb" id="orb">
-            <div style="text-align:center">
+        <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0;border-radius:2px">
+
+        <div>
+          <div class="muted">Achievements</div>
+          <div class="skin-list" id="achGrid" aria-live="polite"></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="muted">Upload Custom Skin</div>
+          <input id="uploadSkin" type="file" accept="image/*" aria-label="Upload custom skin" />
+          <div style="margin-top:8px;font-size:13px" class="muted">Upload an image to create a custom orb skin. It will be added to your cosmetics.</div>
+        </div>
+
+        <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0;border-radius:2px">
+
+        <div>
+          <div class="muted">Quick Controls</div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button id="shortcutRoll" class="btn btn-ghost" title="Shortcut: R">Roll (R)</button>
+            <button id="shortcutAuto" class="btn btn-ghost" title="Shortcut: A">Auto (A)</button>
+            <button id="regenerateSeed" class="btn btn-ghost">New Seed</button>
+            <button id="clearHistory" class="btn btn-ghost">Clear Log</button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- CENTER -->
+      <main class="card center">
+        <div class="orb-wrap">
+          <div class="orb" id="orb" role="button" tabindex="0" aria-pressed="false" aria-label="Lucky orb. Press R to roll or click." title="Click or press R to roll">
+            <div class="skin" id="orbSkin"></div>
+            <div class="overlay"></div>
+            <div class="center">
               <div class="value" id="value">—</div>
-              <div id="rarityBadge" class="rarity rar-common" style="margin-top:8px">—</div>
+              <div id="rarityBadge" class="rarity rar-common">—</div>
             </div>
           </div>
 
-          <div style="display:flex;gap:10px;justify-content:center">
-            <button class="btn btn-roll" id="rollBtn">ROLL (₱5)</button>
-            <button class="btn btn-reset" id="resetBtn">Reset</button>
+          <div class="controls" style="margin-top:8px">
+            <button id="rollBtn" class="btn btn-primary">ROLL (₱<span id="rollCostDisplay">5</span>)</button>
+            <button id="multiBtn" class="btn btn-ghost">×10</button>
+            <button id="autoBtn" class="btn btn-ghost">Auto</button>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+              <label for="speedRange" class="muted" style="font-size:13px">Speed</label>
+              <input id="speedRange" type="range" min="200" max="2000" step="50" value="1000" aria-label="Auto roll speed" />
+            </div>
           </div>
 
-          <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:8px">
-            <div class="muted">Auto-roll</div>
-            <label style="display:inline-flex;align-items:center;gap:8px">
-              <input type="checkbox" id="autoCheck" />
-            </label>
-            <div class="muted">Speed</div>
-            <input id="speed" type="range" min="200" max="2000" value="800" />
+          <div style="display:flex;gap:12px;justify-content:space-between;width:100%;margin-top:10px">
+            <div class="muted">Last Win: <span id="lastWin">—</span></div>
+            <div class="muted">Seed: <span id="seedShort">—</span></div>
           </div>
 
-          <div style="display:flex;gap:8px;justify-content:space-between;margin-top:12px;flex-wrap:wrap">
-            <div class="stat"><div class="muted">Rolls</div><div id="rollCount">0</div></div>
-            <div class="stat"><div class="muted">Best Streak</div><div id="bestStreak">0</div></div>
-            <div class="stat"><div class="muted">Current Streak</div><div id="curStreak">0</div></div>
-            <div class="stat"><div class="muted">Last Win</div><div id="lastWin">—</div></div>
+          <div style="width:100%;margin-top:12px">
+            <div class="muted">Activity Log</div>
+            <div class="log" id="log" aria-live="polite"></div>
           </div>
-
         </div>
-      </section>
+      </main>
 
-      <section class="card">
-        <div class="panel">
-          <h3 style="margin:0">Activity Log</h3>
-          <div class="muted" style="font-size:13px">Recent rolls & outcomes</div>
-
-          <div class="log" id="log"></div>
-
-          <footer>
-            <div>
-              <div style="font-weight:700">How it works</div>
-              <div class="muted">Roll costs ₱5. Rarities determine points earned. Legendary is rare — celebrate when it appears!</div>
-            </div>
-            <div style="text-align:right">
-              <div class="muted">Seed: <span id="seedId">—</span></div>
-            </div>
-          </footer>
+      <!-- RIGHT -->
+      <aside class="card right">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="muted">Cosmetic Shop</div>
+          <div class="muted">Owned: <span id="ownedCount">0</span></div>
         </div>
-      </section>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <input id="searchSkin" placeholder="Search skins" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" />
+          <select id="filterRarity" style="padding:8px;border-radius:8px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.04)">
+            <option value="all">All</option>
+            <option value="common">Common</option>
+            <option value="rare">Rare</option>
+            <option value="epic">Epic</option>
+            <option value="legendary">Legendary</option>
+            <option value="mythic">Mythic</option>
+          </select>
+        </div>
+
+        <div id="shopList" class="shop-grid" aria-live="polite"></div>
+
+        <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0;border-radius:2px">
+
+        <div>
+          <div class="muted">Leaderboard (Local)</div>
+          <div id="leaderboard" style="margin-top:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="nameInput" placeholder="Your name" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" />
+            <button id="submitScore" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+
+      </aside>
     </div>
   </div>
 
+  <!-- Confetti canvas (improved) -->
   <canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 300ms"></canvas>
 
+  <!-- Modal -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card" id="modalCard"></div>
+  </div>
+
   <script>
-    // RNG Game logic — clean, accessible, and single-file.
-    (()=>{
-      const balanceEl = document.getElementById('balance')
-      const highEl = document.getElementById('highscore')
-      const valueEl = document.getElementById('value')
-      const rarityEl = document.getElementById('rarityBadge')
-      const orb = document.getElementById('orb')
-      const rollBtn = document.getElementById('rollBtn')
-      const resetBtn = document.getElementById('resetBtn')
-      const logEl = document.getElementById('log')
-      const rollCountEl = document.getElementById('rollCount')
-      const bestStreakEl = document.getElementById('bestStreak')
-      const curStreakEl = document.getElementById('curStreak')
-      const lastWinEl = document.getElementById('lastWin')
-      const seedIdEl = document.getElementById('seedId')
-      const autoCheck = document.getElementById('autoCheck')
-      const speed = document.getElementById('speed')
+  (function(){
+    // Elements
+    const body = document.body
+    const balanceEl = document.getElementById('balance')
+    const valueEl = document.getElementById('value')
+    const rarityEl = document.getElementById('rarityBadge')
+    const orbEl = document.getElementById('orb')
+    const orbSkin = document.getElementById('orbSkin')
+    const rollBtn = document.getElementById('rollBtn')
+    const multiBtn = document.getElementById('multiBtn')
+    const autoBtn = document.getElementById('autoBtn')
+    const speedRange = document.getElementById('speedRange')
+    const shopList = document.getElementById('shopList')
+    const logEl = document.getElementById('log')
+    const seedShort = document.getElementById('seedShort')
+    const ownedCountEl = document.getElementById('ownedCount')
+    const uploadSkin = document.getElementById('uploadSkin')
+    const searchSkin = document.getElementById('searchSkin')
+    const filterRarity = document.getElementById('filterRarity')
+    const modal = document.getElementById('modal')
+    const modalCard = document.getElementById('modalCard')
 
-      const confettiCanvas = document.getElementById('confetti')
-      const ctx = confettiCanvas.getContext('2d')
-      let confettiPieces = []
+    // canvas confetti
+    const confettiCanvas = document.getElementById('confetti')
+    const ctx = confettiCanvas.getContext('2d')
+    let confettiPieces = []
+    function resizeCanvas(){ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas()
 
-      // persistent state
-      const key = 'lucky-orbs-v1'
-      let state = {
-        balance: 50, // starter balance
-        high: 0,
-        rolls:0,
-        bestStreak:0,
-        curStreak:0,
-        lastWin:'—',
-        seed: Math.floor(Math.random()*1e9).toString(36).slice(0,6).toUpperCase()
-      }
+    // storage
+    const KEY = 'lucky-orbs-cosmetics-v2'
+    const LB_KEY = 'lucky-orbs-leaderboard-v2'
 
-      // load
-      try{ const saved = JSON.parse(localStorage.getItem(key)); if(saved) state = {...state,...saved} }catch(e){}
-      balanceEl.textContent = state.balance
-      highEl.textContent = state.high
-      rollCountEl.textContent = state.rolls
-      bestStreakEl.textContent = state.bestStreak
-      curStreakEl.textContent = state.curStreak
-      lastWinEl.textContent = state.lastWin
-      seedIdEl.textContent = state.seed
+    const defaultState = {
+      version: '2.0',
+      balance: 400,
+      high: 0,
+      rolls: 0,
+      bestStreak: 0,
+      curStreak: 0,
+      lastWin: '—',
+      seed: (new Date().getTime() + Math.floor(Math.random()*1e9)).toString(36).slice(0,10).toUpperCase(),
+      wins:0, rare:0, epic:0, legend:0, mythic:0,
+      skins: [], // owned skins
+      activeSkin: 'classic',
+      auto:false,
+      rollCost:5,
+      audio: true,
+      history: [], // transaction history
+      autoSpeed: 1000
+    }
 
-      function save(){ localStorage.setItem(key, JSON.stringify(state)) }
+    let state = {}
 
-      function rng(){ // returns 0..1 with a seeded-ish tweak using time + seed
-        // Not cryptographically secure — purely for fun
-        const t = performance.now()
-        const s = state.seed.split('').reduce((a,c)=>a + c.charCodeAt(0), 0)
-        const x = Math.sin(t*0.000021 + s) * 10000
-        return x - Math.floor(x)
-      }
+    // pre-defined cosmetic skins
+    const builtInSkins = [
+      {id:'classic', title:'Classic Orb', price:0, thumb:genThumbClassic(), cssClass:'', rarity:'common'},
+      {id:'aurora', title:'Aurora Flow', price:120, thumb:genThumbGradient('#7c3aed','#06b6d4'), cssClass:'skin-animated-1', rarity:'rare'},
+      {id:'sunburst', title:'Sunburst', price:140, thumb:genThumbGradient('#ff7a18','#3a1c71'), cssClass:'skin-animated-2', rarity:'epic'},
+      {id:'galaxy', title:'Galaxy', price:300, thumb:genThumbImage('data:image/svg+xml;utf8,'+encodeURIComponent(svgGalaxy())), cssClass:'skin-animated-3', rarity:'legendary'},
+      {id:'void', title:'Void Core', price:800, thumb:genThumbGradient('#0b1220','#7c3aed'), cssClass:'skin-animated-4', rarity:'mythic'}
+    ]
 
-      function rollOnce(){
-        if(state.balance < 5) return pushLog('Not enough balance to roll.', 'warning')
-        state.balance -= 5
-        state.rolls += 1
+    // helpers
+    function genThumbGradient(a,b){ return `linear-gradient(135deg, ${a}, ${b})` }
+    function genThumbClassic(){ return `linear-gradient(135deg,#0ea5a4,#7c3aed)` }
+    function genThumbImage(url){ return `url(${url})` }
+    function svgGalaxy(){ return `<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><radialGradient id="g"><stop offset="0%" stop-color="#fff" stop-opacity="0.95"/><stop offset="40%" stop-color="#7c3aed" stop-opacity="0.7"/><stop offset="100%" stop-color="#0f1724"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><g fill="#fff" opacity="0.9"><circle cx="40" cy="40" r="2"/><circle cx="140" cy="60" r="1.5"/><circle cx="80" cy="110" r="1.3"/></g></svg>` }
 
-        // main RNG value 1-100
-        const r = Math.floor(rng()*100) + 1
-        valueEl.textContent = r
+    // seeded RNG (stateless -- uses seed + counter to produce deterministic sequence)
+    function seededRandom(seedStr, nonce){
+      // simple xorshift-ish based on string
+      let h = 2166136261 >>> 0
+      for(let i=0;i<seedStr.length;i++){ h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619) >>> 0 }
+      h = (h + nonce) >>> 0
+      // xorshift32
+      h ^= h << 13; h ^= h >>> 17; h ^= h << 5; h = h >>> 0
+      return (h % 1000000) / 1000000
+    }
 
-        // determine rarity
-        let rarity = 'Common', cls='rar-common', points = 1
-        if(r === 100){ rarity='Mythic'; cls='rar-legend'; points = 150 }
-        else if(r >= 95){ rarity='Legendary'; cls='rar-legend'; points = 50 }
-        else if(r >= 85){ rarity='Epic'; cls='rar-epic'; points = 20 }
-        else if(r >= 60){ rarity='Rare'; cls='rar-rare'; points = 6 }
-        else { rarity='Common'; cls='rar-common'; points = 1 }
+    // load/save
+    function load(){ try{ const saved = JSON.parse(localStorage.getItem(KEY)); state = saved ? {...defaultState,...saved} : {...defaultState}; }catch(e){ state = {...defaultState} } }
+    function save(){ localStorage.setItem(KEY, JSON.stringify(state)) }
 
-        // visual
-        rarityEl.textContent = rarity
-        rarityEl.className = 'rarity '+cls
-        orb.classList.remove('glow')
-        void orb.offsetWidth
-        orb.classList.add('spin')
-        setTimeout(()=>orb.classList.remove('spin'), 1200)
+    // ensure built-in skins
+    function ensureBuiltInSkins(){ builtInSkins.forEach(s=>{ if(!state.skins.find(x=>x.id===s.id)){ state.skins.push({...s,owned: s.price===0, ownedAt: s.price===0?Date.now():null}) } }) }
 
-        // scoring
-        const earned = points
-        state.balance += earned
-
-        // streaks
-        if(['Epic','Legendary','Mythic'].includes(rarity)){
-          state.curStreak += 1
-          state.bestStreak = Math.max(state.bestStreak, state.curStreak)
-          state.lastWin = `${rarity} (+${earned})`
-        } else {
-          state.curStreak = 0
-        }
-
-        // big celebrations
-        if(rarity === 'Legendary' || rarity === 'Mythic'){
-          orb.classList.add('glow')
-          fireConfetti(r===100?120:80)
-        }
-
-        state.high = Math.max(state.high, state.balance)
-        updateUI()
-        save()
-
-        pushLog(`#${state.rolls} rolled ${r} — ${rarity} (+${earned} pts)`, rarity)
-      }
-
-      function updateUI(){
-        balanceEl.textContent = state.balance
-        highEl.textContent = state.high
-        rollCountEl.textContent = state.rolls
-        bestStreakEl.textContent = state.bestStreak
-        curStreakEl.textContent = state.curStreak
-        lastWinEl.textContent = state.lastWin
-      }
-
-      function pushLog(text, kind){
-        const node = document.createElement('div')
-        node.textContent = text
-        node.style.padding = '6px 0'
-        if(kind === 'Legendary' || kind === 'Mythic' || kind === 'warning') node.style.fontWeight='700'
-        logEl.prepend(node)
-        // keep recent 200 lines
-        while(logEl.childNodes.length > 200) logEl.removeChild(logEl.lastChild)
-      }
-
-      rollBtn.addEventListener('click', ()=>rollOnce())
-      resetBtn.addEventListener('click', ()=>{
-        if(!confirm('Reset progress and start fresh?')) return
-        state = {balance:50,high:0,rolls:0,bestStreak:0,curStreak:0,lastWin:'—',seed:Math.floor(Math.random()*1e9).toString(36).slice(0,6).toUpperCase()}
-        save(); updateUI(); seedIdEl.textContent = state.seed; logEl.innerHTML=''; pushLog('Progress reset — good luck!')
+    // render shop
+    function renderShop(){ shopList.innerHTML = '';
+      const q = (searchSkin.value||'').toLowerCase(); const filter = filterRarity.value
+      state.skins.filter(s=>{
+        if(q && !(s.title||'').toLowerCase().includes(q)) return false
+        if(filter !== 'all' && (s.rarity||'common') !== filter) return false
+        return true
+      }).forEach(s=>{
+        const div = document.createElement('div'); div.className='shop-item';
+        const thumb = s.customDataURL ? `url(${s.customDataURL})` : (s.thumb || genThumbClassic())
+        const price = s.price || 0
+        const owned = !!s.owned
+        div.innerHTML = `
+          <div class='skin-thumb' style='background:${thumb}'></div>
+          <div class='skin-meta'>
+            <div style='font-weight:800'>${escapeHtml(s.title||'Custom')}</div>
+            <div class='muted' style='font-size:12px'>${owned?'<span style="font-weight:700">Owned</span>':(price===0?'Free':`₱${price}`)} • <span style='text-transform:capitalize'>${s.rarity||'common'}</span></div>
+          </div>
+          <div class='skin-actions'>
+            <button class='btn buy' data-id='${s.id}'>${owned ? 'Select' : 'Buy'}</button>
+            <button class='btn btn-ghost preview' data-id='${s.id}'>Preview</button>
+          </div>`
+        shopList.appendChild(div)
       })
+      shopList.querySelectorAll('.buy').forEach(b=> b.addEventListener('click', ()=>{ handleBuyOrSelect(b.dataset.id) }))
+      shopList.querySelectorAll('.preview').forEach(b=> b.addEventListener('click', ()=>{ previewSkin(b.dataset.id) }))
+      updateOwnedCount()
+    }
 
-      // auto-roll support
-      let autoTimer = null
-      autoCheck.addEventListener('change', ()=>{
-        if(autoCheck.checked) startAuto() ; else stopAuto()
+    function updateOwnedCount(){ ownedCountEl.textContent = state.skins.filter(s=>s.owned).length }
+
+    // handle buy/select
+    function handleBuyOrSelect(id){ const s = state.skins.find(x=>x.id===id); if(!s) return; if(s.owned){ setActiveSkin(id); pushLog(`Selected skin: ${s.title}`); animatePulse(orbEl); return } const skinDef = builtInSkins.find(x=>x.id===id) || {}; const price = skinDef.price || s.price || 0; if(state.balance < price){ pushLog('Not enough coins to buy skin', 'warn'); shake(orbEl); return }
+      // confirmation modal
+      showModal(`Buy ${escapeHtml(s.title)} for ₱${price}?`, () =>{
+        state.balance -= price; s.owned = true; s.ownedAt = Date.now(); state.history.push({type:'purchase',id:s.id,title:s.title,price,date:Date.now()}); save(); renderShop(); populateSkinPicker(); pushLog(`Purchased skin: ${s.title} — ₱${price}`); setActiveSkin(s.id); closeModal(); animateGlow(orbEl)
       })
-      speed.addEventListener('input', ()=>{ if(autoCheck.checked) { stopAuto(); startAuto() } })
-      function startAuto(){
-        stopAuto()
-        autoTimer = setInterval(()=>{ if(document.hidden) return; rollOnce() }, parseInt(speed.value))
-      }
-      function stopAuto(){ if(autoTimer) { clearInterval(autoTimer); autoTimer=null } }
+    }
 
-      // confetti simple engine
-      function resizeCanvas(){ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight }
-      window.addEventListener('resize', resizeCanvas)
-      resizeCanvas()
+    // set active skin and apply
+    function setActiveSkin(id){ const s = state.skins.find(x=>x.id===id); if(!s || !s.owned) return; state.activeSkin = id; applySkin(s); save(); updateUI(); populateSkinPicker() }
+    function applySkin(skin){ orbSkin.className = 'skin'; orbSkin.style.background = '';
+      if(skin.cssClass) orbSkin.classList.add(skin.cssClass)
+      if(skin.customDataURL) orbSkin.style.background = `url(${skin.customDataURL}) center/cover no-repeat`
+      else if(skin.thumb && skin.thumb.startsWith('linear-gradient')) orbSkin.style.background = skin.thumb
+      else if(skin.thumb && skin.thumb.startsWith('url(')) orbSkin.style.background = skin.thumb
+    }
 
-      function fireConfetti(count=60){
-        confettiCanvas.style.opacity = 1
-        for(let i=0;i<count;i++) confettiPieces.push(createPiece())
-        if(!window._confettiLoop) loopConfetti()
-        setTimeout(()=>{ confettiCanvas.style.opacity = 0 }, 2200)
-      }
-      function createPiece(){
-        return {
-          x: Math.random()*confettiCanvas.width,
-          y: -20 - Math.random()*200,
-          vx: (Math.random()-0.5)*6,
-          vy: 2+Math.random()*6,
-          size: 6+Math.random()*10,
-          rot: Math.random()*360,
-          velRot: (Math.random()-0.5)*12,
-          color: ['#f59e0b','#ef4444','#10b981','#7c3aed','#06b6d4'][Math.floor(Math.random()*5)]
-        }
-      }
-      function loopConfetti(){
-        window._confettiLoop = true
-        const step = ()=>{
-          ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height)
-          confettiPieces = confettiPieces.filter(p => p.y < confettiCanvas.height + 50)
-          confettiPieces.forEach(p=>{
-            p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.rot += p.velRot
-            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180)
-            ctx.fillStyle = p.color; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6)
-            ctx.restore()
-          })
-          if(confettiPieces.length) requestAnimationFrame(step)
-          else window._confettiLoop = false
-        }
-        requestAnimationFrame(step)
-      }
+    // preview
+    function previewSkin(id){ const s = state.skins.find(x=>x.id===id); if(!s) return; showModal(`<div style='text-align:center'><div style='width:180px;height:180px;border-radius:12px;margin:0 auto;background:${s.customDataURL?`url(${s.customDataURL}) center/cover`:(s.thumb||genThumbClassic())}'></div><h3 style='margin-top:12px'>${escapeHtml(s.title)}</h3><div class='muted'>${s.rarity||'common'}</div></div>`, ()=>{ closeModal() }, {okText:'Close'}) }
 
-      // accessibility & keyboard
-      window.addEventListener('keydown', (e)=>{ if(e.key === ' ' || e.key === 'Enter') { e.preventDefault(); rollOnce() } })
+    // populate skin picker
+    const skinPicker = document.createElement('select'); skinPicker.style.padding='8px'; skinPicker.style.borderRadius='8px'; skinPicker.style.background='transparent'; skinPicker.style.color='inherit'; skinPicker.style.border='1px solid rgba(255,255,255,0.04)'; document.querySelector('.controls').appendChild(skinPicker)
+    function populateSkinPicker(){ skinPicker.innerHTML = ''; state.skins.forEach(s=>{ const opt = document.createElement('option'); opt.value = s.id; opt.textContent = `${s.title}${s.owned ? ' (Owned)' : ''}`; skinPicker.appendChild(opt) }); skinPicker.value = state.activeSkin }
+    skinPicker.addEventListener('change', ()=>{ setActiveSkin(skinPicker.value) })
 
-      // initial hint
-      pushLog(`Welcome! Starter balance ₱${state.balance}. Press ROLL or hit Space/Enter to play. Seed: ${state.seed}`)
-      save()
+    // user upload skin
+    uploadSkin.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ()=>{ const dataURL = reader.result; const id = 'custom-'+Date.now().toString(36); const title = f.name.split('.').slice(0,-1).join('.') || 'Custom Skin'; state.skins.push({id,title,price:0,thumb:`url(${dataURL})`,cssClass:'',customDataURL:dataURL,owned:true,ownedAt:Date.now(),rarity:'common'}); save(); renderShop(); populateSkinPicker(); pushLog(`Custom skin added: ${title}`) }; reader.readAsDataURL(f) })
 
-    })();
+    // RNG and roll logic (improved probabilities, displays chance table)
+    const rarityTable = [
+      {name:'Mythic', min:100, chance:0.001, points:1000},
+      {name:'Legendary', min:96, chance:0.02, points:200},
+      {name:'Epic', min:85, chance:0.15, points:50},
+      {name:'Rare', min:60, chance:0.35, points:12},
+      {name:'Common', min:0, chance:0.484, points:2}
+    ]
+
+    function rng(){ const nonce = state.rolls + 1; return seededRandom(state.seed, nonce) }
+
+    function determineRarity(val){ // val in [0,1)
+      let cum = 0; for(let i=0;i<rarityTable.length;i++){ cum += rarityTable[i].chance; if(val < cum) return rarityTable[i] }
+      return rarityTable[rarityTable.length-1]
+    }
+
+    function rollOnce(){ if(state.balance < state.rollCost){ pushLog('Not enough coins to roll', 'warn'); playSound('error'); return } state.balance -= state.rollCost; state.rolls += 1; const rVal = rng(); const percent = Math.floor(rVal*10000)/100; const rarityEntry = determineRarity(rVal); const r = Math.floor(rVal*100)+1; valueEl.textContent = r; rarityEl.textContent = rarityEntry.name; rarityEl.className = 'rarity'; rarityEl.classList.add('rar-'+rarityEntry.name.toLowerCase()); state.balance += rarityEntry.points; state.history.push({type:'roll',value:r,rarity:rarityEntry.name,points:rarityEntry.points,seed:state.seed,roll:state.rolls,date:Date.now()})
+      // streaks
+      if(rarityEntry.name !== 'Common'){ state.curStreak += 1; state.bestStreak = Math.max(state.bestStreak, state.curStreak); state.lastWin = `${rarityEntry.name} (+${rarityEntry.points})`; state.wins += 1 } else { state.curStreak = 0 }
+      // visual
+      animateRollEffect(rarityEntry.name)
+      pushLog(`#${state.rolls} rolled ${r} — ${rarityEntry.name} (+${rarityEntry.points})`, rarityEntry.name)
+      updateUI(); save(); return {r: r, rarity: rarityEntry.name, points: rarityEntry.points}
+    }
+
+    // UI updates
+    function updateUI(){ balanceEl.textContent = state.balance; seedShort.textContent = state.seed.slice(0,8); document.getElementById('lastWin').textContent = state.lastWin; document.getElementById('rollCostDisplay').textContent = state.rollCost; speedRange.value = state.autoSpeed }
+
+    // logging
+    function pushLog(txt, kind){ const node=document.createElement('div'); node.textContent=txt; node.style.padding='6px 0'; if(kind==='Legendary'||kind==='Mythic') node.style.fontWeight='900'; if(kind==='warn') node.style.color='var(--danger)'; logEl.prepend(node); while(logEl.childNodes.length>300) logEl.removeChild(logEl.lastChild) }
+
+    // confetti engine (improved with triangles + circles)
+    function createPiece(){ const shapes = ['rect','circle','tri']; return { x: Math.random()*confettiCanvas.width, y:-20-Math.random()*200, vx:(Math.random()-0.5)*8, vy:2+Math.random()*6, size:6+Math.random()*12, rot:Math.random()*360, velRot:(Math.random()-0.5)*12, color:['#f59e0b','#ef4444','#10b981','#7c3aed','#06b6d4'][Math.floor(Math.random()*5)], shape: shapes[Math.floor(Math.random()*shapes.length)] } }
+    function fireConfetti(count=80){ confettiCanvas.style.opacity=1; for(let i=0;i<count;i++) confettiPieces.push(createPiece()); if(!window._confettiLoop) loopConfetti(); setTimeout(()=>confettiCanvas.style.opacity=0,2200) }
+    function loopConfetti(){ window._confettiLoop=true; const step=()=>{ ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); confettiPieces = confettiPieces.filter(p=>p.y < confettiCanvas.height + 50); confettiPieces.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy += 0.12; p.rot += p.velRot; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle=p.color; if(p.shape==='rect') ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6); else if(p.shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill() } else { ctx.beginPath(); ctx.moveTo(-p.size/2,p.size/2); ctx.lineTo(p.size/2,p.size/2); ctx.lineTo(0,-p.size/2); ctx.closePath(); ctx.fill() } ctx.restore() }); if(confettiPieces.length) requestAnimationFrame(step); else window._confettiLoop=false }; requestAnimationFrame(step) }
+
+    // visual roll effects
+    function animateRollEffect(rarity){ orbEl.classList.add('spin'); setTimeout(()=>orbEl.classList.remove('spin'), 1800); if(rarity==='Legendary') fireConfetti(120); if(rarity==='Mythic') fireConfetti(240); playSound('roll'); }
+
+    // small animations
+    function animatePulse(el){ el.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:420,easing:'cubic-bezier(.2,.9,.2,1)'} ) }
+    function animateGlow(el){ el.animate([{boxShadow:'0 30px 80px rgba(2,6,23,0.6)'},{boxShadow:'0 0 60px rgba(124,58,237,0.28)'},{boxShadow:'0 30px 80px rgba(2,6,23,0.6)'}],{duration:900}) }
+    function shake(el){ el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:360}) }
+
+    // modal helpers
+    function showModal(content, onOk, opts={okText:'Buy', cancelText:'Cancel'}){
+      modalCard.innerHTML = `<div>${content}</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id='modalCancel' class='btn btn-ghost'>${opts.cancelText||'Cancel'}</button><button id='modalOk' class='btn btn-primary'>${opts.okText||'Buy'}</button></div>`
+      modal.classList.add('open'); modal.setAttribute('aria-hidden','false')
+      document.getElementById('modalCancel').addEventListener('click', ()=>{ closeModal() })
+      document.getElementById('modalOk').addEventListener('click', ()=>{ if(onOk) onOk(); })
+    }
+    function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true') }
+
+    // preview helper already uses showModal
+
+    // leaderboard
+    function loadLeaderboard(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)) || [] }catch(e){ return [] } }
+    function renderLeaderboard(){ const lb = loadLeaderboard().slice(0,10); const el = document.getElementById('leaderboard'); el.innerHTML=''; lb.forEach((r,idx)=>{ const d=document.createElement('div'); d.style.padding='8px'; d.style.borderRadius='8px'; d.style.background='linear-gradient(180deg, rgba(255,255,255,0.01), transparent)'; d.style.display='flex'; d.style.justifyContent='space-between'; d.innerHTML = `<div style='font-weight:800'>${idx+1}. ${escapeHtml(r.name)}</div><div class='muted'>${r.score} pts</div>`; el.appendChild(d) }) }
+    function submitLeaderboard(){ const name = (document.getElementById('nameInput').value || 'Player').slice(0,24); const score = state.high || Math.max(...(state.history.filter(h=>h.type==='roll').map(h=>h.points)||[0])); const lb = loadLeaderboard(); lb.push({name,score,date:Date.now()}); lb.sort((a,b)=>b.score-a.score); localStorage.setItem(LB_KEY, JSON.stringify(lb.slice(0,100))); renderLeaderboard(); pushLog('Score submitted to local leaderboard') }
+
+    // utilities
+    function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c] || c) }
+
+    // sounds (WebAudio) simple tones
+    const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx=null
+    function ensureAudio(){ if(!AudioCtx) return null; if(!audioCtx) audioCtx = new AudioCtx(); return audioCtx }
+    function playSound(type){ if(!state.audio) return; const ctx = ensureAudio(); if(!ctx) return; const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); if(type==='roll'){ o.type='sine'; o.frequency.value=880; g.gain.value=0.02; o.start(); setTimeout(()=>{ o.frequency.value=660 },80); setTimeout(()=>{ o.stop() },220) }
+      if(type==='error'){ o.type='sawtooth'; o.frequency.value=220; g.gain.value=0.04; o.start(); setTimeout(()=>{ o.stop() },200) }
+    }
+
+    // keyboard shortcuts
+    window.addEventListener('keydown', (e)=>{
+      if(document.activeElement.tagName==='INPUT' || document.activeElement.tagName==='TEXTAREA') return
+      if(e.key.toLowerCase()==='r'){ rollBtn.click() }
+      if(e.key.toLowerCase()==='a'){ autoBtn.click() }
+      if(e.key.toLowerCase()==='s'){ document.getElementById('searchSkin').focus() }
+    })
+
+    // export/import
+    document.getElementById('exportBtn').addEventListener('click', ()=>{ const blob = new Blob([JSON.stringify(state)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download='lucky-orbs-save-v2.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url) })
+    document.getElementById('importBtn').addEventListener('click', ()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = ()=>{ const f = inp.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try{ const imported = JSON.parse(r.result); state = {...defaultState,...imported}; ensureBuiltInSkins(); save(); renderAll(); pushLog('Save imported') }catch(e){ pushLog('Failed to import save', 'warn') } }; r.readAsText(f) }; inp.click() })
+
+    // event handlers
+    rollBtn.addEventListener('click', ()=> rollOnce())
+    multiBtn.addEventListener('click', ()=>{ for(let i=0;i<10;i++) rollOnce() })
+    autoBtn.addEventListener('click', ()=>{ state.auto = !state.auto; autoBtn.textContent = state.auto ? 'Auto ✓' : 'Auto'; if(state.auto) startAuto(); else stopAuto(); save() })
+    document.getElementById('submitScore').addEventListener('click', submitLeaderboard)
+    document.getElementById('regenerateSeed').addEventListener('click', ()=>{ state.seed = (new Date().getTime() + Math.floor(Math.random()*1e9)).toString(36).slice(0,10).toUpperCase(); save(); updateUI(); pushLog('Seed regenerated') })
+    document.getElementById('clearHistory').addEventListener('click', ()=>{ state.history = []; save(); pushLog('History cleared') })
+
+    // auto roll
+    let autoTimer = null
+    function startAuto(){ if(autoTimer) clearInterval(autoTimer); state.autoSpeed = Number(speedRange.value); autoTimer = setInterval(()=>{ if(document.hidden) return; rollOnce() }, state.autoSpeed); playSound('roll') }
+    function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null } }
+    speedRange.addEventListener('input', ()=>{ state.autoSpeed = Number(speedRange.value); if(state.auto){ stopAuto(); startAuto() } save() })
+
+    // init skins
+    function initSkins(){ ensureBuiltInSkins(); renderShop(); populateSkinPicker(); const active = state.skins.find(s=>s.id===state.activeSkin) || state.skins[0]; setActiveSkin(active.id) }
+
+    // render shop duplicates removed
+
+    // preview animation helpers
+    function animateOrbParallax(e){ const rect = orbEl.getBoundingClientRect(); const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2; const dx = (e.clientX - cx)/rect.width; const dy = (e.clientY - cy)/rect.height; orbEl.style.transform = `rotateX(${(-dy*6).toFixed(2)}deg) rotateY(${(dx*8).toFixed(2)}deg) translateY(${(-Math.abs(dy)*6).toFixed(2)}px)` }
+    orbEl.addEventListener('mousemove', animateOrbParallax)
+    orbEl.addEventListener('mouseleave', ()=>{ orbEl.style.transform='' })
+
+    // simple UI animation helpers
+    function animatePulseOn(el){ el.animate([{transform:'scale(1)'},{transform:'scale(1.03)'}],{duration:220,fill:'forwards'}) }
+
+    // preview function reuse
+
+    // initial load + render
+    function renderAll(){ renderShop(); renderLeaderboard(); updateUI(); pushLog(`Welcome! Starter balance ₱${state.balance}. Seed: ${state.seed}`) }
+
+    load(); ensureBuiltInSkins(); initSkins(); renderLeaderboard(); updateUI(); pushLog('Lucky Orbs v2.0 ready — keyboard: R=roll, A=auto, S=search')
+
+    // shop search/filter events
+    searchSkin.addEventListener('input', ()=> renderShop())
+    filterRarity.addEventListener('change', ()=> renderShop())
+
+    // expose for debugging
+    window._luckyOrbs = {state, save, load, rollOnce}
+
+  })();
   </script>
 </body>
 </html>
