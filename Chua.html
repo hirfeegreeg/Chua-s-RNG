@@ -3,22 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lucky Orbs — Cosmetics & Skins</title>
-<meta name="description" content="Advanced RNG game with positive and negative rarities, cosmetic orb skins, animated visuals, and improved UX." />
+<title>Lucky Orbs — Full Cosmetic System</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#071029; --card:#071827; --accent:#7c3aed; --accent-2:#06b6d4; --glass:rgba(255,255,255,0.04);
-  --muted:rgba(255,255,255,0.66); --success:#10b981; --danger:#ef4444; --glass-2:rgba(255,255,255,0.02);
-  --text:#e6eef8; --radius:14px; --max-width:1200px; --orb-size:220px;
+  --muted:rgba(255,255,255,0.66); --text:#e6eef8; --radius:14px; --max-width:1200px; --orb-size:220px;
   font-family:Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-[data-theme='dark']{ --bg:#071029; --card:#071827; --accent:#7c3aed; --accent-2:#06b6d4; --text:#e6eef8 }
-[data-theme='midnight']{ --bg:#00121b; --card:#07132a; --accent:#06b6d4; --accent-2:#7c3aed; --text:#eaf6ff }
-[data-theme='sunrise']{ --bg:#fff7ed; --card:#fff; --accent:#fb923c; --accent-2:#ef4444; --text:#0b1020 }
-
-*{box-sizing:border-box}
-html,body{height:100%}
 body{margin:0;background:linear-gradient(180deg,var(--bg) 0%, #03121a 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:24px}
 .app{width:100%;max-width:var(--max-width)}
 header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
@@ -30,7 +22,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0ea5a4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800}
 
 .orb-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
-.orb{width:var(--orb-size);height:var(--orb-size);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.03), transparent 10%);box-shadow:0 30px 80px rgba(2,6,23,0.6)}
+.orb{width:var(--orb-size);height:var(--orb-size);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(2,6,23,0.6)}
 .orb .skin{position:absolute;inset:0;background-size:cover;background-position:center;transform-origin:center;transition:transform 600ms cubic-bezier(.2,.9,.2,1)}
 .orb .overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.18))}
 .orb .center{position:relative;z-index:5;text-align:center}
@@ -44,31 +36,24 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 
 .shop-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
 .skin-thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.03)}
-.skin-meta{flex:1}
-
-.theme-switcher{display:flex;gap:8px;align-items:center}
-.theme-dot{width:14px;height:14px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,0.06)}
+.skin-meta{flex:1;display:flex;justify-content:space-between;align-items:center}
 
 .log{height:240px;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;font-family:monospace;font-size:13px}
 .skin-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
-.skin-actions{display:flex;gap:8px;align-items:center}
-.badge{background:var(--glass);padding:6px 8px;border-radius:8px;font-weight:700}
-
+.skin-list div{display:flex;justify-content:space-between;align-items:center}
 @media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
 @keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg) scale(1)}}
-.glow{box-shadow:0 0 40px rgba(124,58,237,0.22), inset 0 8px 40px rgba(124,58,237,0.06)}
 </style>
 </head>
-<body data-theme="dark">
+<body>
 <div class="app">
 <header>
   <div>
-    <h1>Lucky Orbs — Skins & Cosmetics</h1>
-    <p class="lead">NEGATIVE rarities active, new expensive skins, high-score resets per minute!</p>
+    <h1>Lucky Orbs — Cosmetic System</h1>
+    <p class="lead">Own skins, equip them, negative rarities, high score per minute!</p>
   </div>
 </header>
-
 <div class="layout">
 <aside class="card left">
 <div class="profile">
@@ -78,14 +63,13 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="muted">Balance: ₱<span id="balance">0</span></div>
 </div></div>
 <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0;border-radius:2px">
-<div><div class="muted">Achievements</div><div class="skin-list" id="achGrid"></div></div>
-<div style="margin-top:12px"><div class="muted">Upload Custom Skin</div><input id="uploadSkin" type="file" accept="image/*" /></div>
+<div><div class="muted">Owned Skins</div><div class="skin-list" id="achGrid"></div></div>
 </aside>
 
 <main class="card center">
 <div class="orb-wrap">
 <div class="orb" id="orb"><div class="skin" id="orbSkin"></div><div class="overlay"></div>
-<div class="center"><div class="value" id="value">—</div><div id="rarityBadge" class="rarity rar-common">—</div></div></div>
+<div class="center"><div class="value" id="value">—</div><div id="rarityBadge" class="rarity">—</div></div></div>
 
 <div class="controls">
 <button id="rollBtn" class="btn btn-primary">ROLL (₱<span id="rollCostDisplay">5</span>)</button>
@@ -98,8 +82,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 </div>
 <div style="width:100%;margin-top:12px">
 <div class="muted">Activity Log</div><div class="log" id="log"></div></div>
-<div style="margin-top:12px"><div class="muted">High Score (per minute): <span id="highScore">0</span></div></div>
-</div>
+<div style="margin-top:12px"><div class="muted">High Score (per min): <span id="highScore">0</span></div></div>
 </main>
 
 <aside class="card right">
@@ -116,51 +99,81 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 const balanceEl=document.getElementById('balance');
 const valueEl=document.getElementById('value');
 const rarityEl=document.getElementById('rarityBadge');
+const orbSkinEl=document.getElementById('orbSkin');
 const orbEl=document.getElementById('orb');
 const rollBtn=document.getElementById('rollBtn');
 const multiBtn=document.getElementById('multiBtn');
 const logEl=document.getElementById('log');
 const seedShort=document.getElementById('seedShort');
 const highScoreEl=document.getElementById('highScore');
+const ownedCountEl=document.getElementById('ownedCount');
+const skinPicker=document.getElementById('skinPicker');
+const achGrid=document.getElementById('achGrid');
 
-const KEY='lucky-orbs-cosmetics-v3';
+const KEY='lucky-orbs-fullcosmetic';
+const defaultState={
+balance:200,
+rolls:0,
+lastWin:'—',
+seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),
+skinsOwned:['classic','rainbow'],
+activeSkin:'classic',
+rollCost:5,
+currentScore:0,
+highScore:0
+};
 let state={};
-const defaultState={balance:200,rolls:0,lastWin:'—',seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),skins:['classic'],activeSkin:'classic',rollCost:5,currentScore:0,highScore:0};
 
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));state=s?{...defaultState,...s}:{...defaultState}}catch(e){state={...defaultState}}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function rng(){const s=state.seed.split('').reduce((a,c)=>a+c.charCodeAt(0),0);const t=performance.now();const x=Math.sin(t*0.000021+s)*10000;return x-Math.floor(x)}
 
+const generatedSkins={
+'classic':()=>`radial-gradient(circle at 30% 30%, #7c3aed,#3b82f6)`,
+'rainbow':()=>`conic-gradient(red,orange,yellow,green,blue,indigo,violet)`,
+'lava':()=>`radial-gradient(circle at 50% 50%, #f87171, #b91c1c)`,
+'galaxy':()=>`radial-gradient(circle at 30% 30%, #0ea5a4,#3b82f6,#7c3aed)`,
+'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`
+};
+
 const shopItems=[
-{skin:'galaxy',price:150,img:'https://i.imgur.com/xyz1.png'},
-{skin:'lava',price:200,img:'https://i.imgur.com/xyz2.png'},
-{skin:'storm',price:300,img:'https://i.imgur.com/xyz3.png'},
-{skin:'cosmic',price:500,img:'https://i.imgur.com/xyz4.png'},
-{skin:'void',price:800,img:'https://i.imgur.com/xyz5.png'}
+{skin:'rainbow',price:150},
+{skin:'lava',price:200},
+{skin:'galaxy',price:300},
+{skin:'void',price:500}
 ];
 
 function populateShop(){
 const shopList=document.getElementById('shopList');
 shopList.innerHTML='';
 shopItems.forEach(i=>{
+if(!state.skinsOwned.includes(i.skin)){
 const div=document.createElement('div');
 div.className='shop-item';
-div.innerHTML=`<div class="skin-thumb" style="background-image:url(${i.img})"></div><div class="skin-meta">${i.skin} — ₱${i.price} <button onclick="buySkin('${i.skin}',${i.price})" class="btn btn-ghost">Buy</button></div>`;
+div.innerHTML=`<div class="skin-thumb" style="background:${generatedSkins[i.skin]()}"></div><div class="skin-meta">${i.skin} — ₱${i.price} <button class="btn btn-ghost">Buy</button></div>`;
+div.querySelector('button').addEventListener('click',()=>buySkin(i.skin,i.price));
 shopList.appendChild(div);
+}
 })
 }
-window.buySkin=function(skin,price){
-if(state.balance>=price){state.balance-=price;if(!state.skins.includes(skin))state.skins.push(skin);updateUI();save()}else alert('Not enough coins')}
+
+function buySkin(skin,price){
+if(state.balance>=price){
+state.balance-=price;
+if(!state.skinsOwned.includes(skin)) state.skinsOwned.push(skin);
+pushLog(`Bought skin: ${skin}`);
+updateUI();save();
+}else alert('Not enough coins');
+}
 
 function pushLog(txt){const n=document.createElement('div');n.textContent=txt;n.style.padding='4px 0';logEl.prepend(n);while(logEl.childNodes.length>300)logEl.removeChild(logEl.lastChild)}
 
 function rollOnce(){
-if(state.balance<state.rollCost){pushLog('Not enough coins');return}
+if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
 state.balance-=state.rollCost;state.rolls++;
 const r=Math.floor(rng()*100)+1;
 let points=0;let rarity='Common';
 
-// Probabilities adjusted for harder gains and negative rarities
 if(r>=99){rarity='Mythic';points=Math.floor(Math.random()*200)+50}
 else if(r>=95){rarity='Legendary';points=Math.floor(Math.random()*100)+30}
 else if(r>=80){rarity='Epic';points=Math.floor(Math.random()*40)+10}
@@ -184,22 +197,48 @@ updateUI(); save();
 rollBtn.addEventListener('click',()=>rollOnce());
 multiBtn.addEventListener('click',()=>{for(let i=0;i<10;i++)rollOnce()});
 
+// Skin selector
+function populateSkinPicker(){
+skinPicker.innerHTML='';
+state.skinsOwned.forEach(skin=>{
+const opt=document.createElement('option');
+opt.value=skin; opt.textContent=skin;
+skinPicker.appendChild(opt);
+});
+skinPicker.value=state.activeSkin;
+skinPicker.onchange=()=>{state.activeSkin=skinPicker.value;updateUI();save();}
+}
+
+function populateOwnedSkins(){
+achGrid.innerHTML='';
+state.skinsOwned.forEach(skin=>{
+const div=document.createElement('div');
+div.innerHTML=`${skin} <button class="btn btn-ghost">Equip</button>`;
+div.querySelector('button').addEventListener('click',()=>{state.activeSkin=skin;updateUI();save();});
+achGrid.appendChild(div);
+})
+}
+
 function updateUI(){
 balanceEl.textContent=state.balance;
 seedShort.textContent=state.seed.slice(0,6);
 document.getElementById('lastWin').textContent=state.lastWin;
 highScoreEl.textContent=state.highScore;
+ownedCountEl.textContent=state.skinsOwned.length;
+orbSkinEl.style.background=generatedSkins[state.activeSkin]();
+populateSkinPicker();
+populateOwnedSkins();
+populateShop();
 }
 
-load();populateShop();updateUI();
+load();updateUI();
 
-// Per-minute reset logic
+// Per-minute reset
 setInterval(()=>{
 state.currentScore=0;
 state.seed=(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8);
 pushLog('--- Minute Reset ---');
-updateUI();
-save();
+updateUI();save();
 },60000);
 
 })();
