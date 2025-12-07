@@ -17,7 +17,6 @@
 [data-theme='midnight']{ --bg:#00121b; --card:#07132a; --accent:#06b6d4; --accent-2:#7c3aed; --text:#eaf6ff }
 [data-theme='sunrise']{ --bg:#fff7ed; --card:#fff; --accent:#fb923c; --accent-2:#ef4444; --text:#0b1020 }
 
-/* Basic styles and responsive layout (same as before) */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:linear-gradient(180deg,var(--bg) 0%, #03121a 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:24px}
@@ -58,7 +57,6 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 @media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
 @keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg) scale(1)}}
-
 .glow{box-shadow:0 0 40px rgba(124,58,237,0.22), inset 0 8px 40px rgba(124,58,237,0.06)}
 </style>
 </head>
@@ -67,7 +65,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <header>
   <div>
     <h1>Lucky Orbs — Skins & Cosmetics</h1>
-    <p class="lead">Now with NEGATIVE rarities: Negamythic removes coins, new expensive skins!</p>
+    <p class="lead">NEGATIVE rarities active, new expensive skins, high-score resets per minute!</p>
   </div>
 </header>
 
@@ -100,6 +98,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 </div>
 <div style="width:100%;margin-top:12px">
 <div class="muted">Activity Log</div><div class="log" id="log"></div></div>
+<div style="margin-top:12px"><div class="muted">High Score (per minute): <span id="highScore">0</span></div></div>
 </div>
 </main>
 
@@ -122,11 +121,11 @@ const rollBtn=document.getElementById('rollBtn');
 const multiBtn=document.getElementById('multiBtn');
 const logEl=document.getElementById('log');
 const seedShort=document.getElementById('seedShort');
+const highScoreEl=document.getElementById('highScore');
 
-const KEY='lucky-orbs-cosmetics-v2';
-const defaultState={balance:200,rolls:0,lastWin:'—',seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),skins:['classic'],activeSkin:'classic',rollCost:5};
-
+const KEY='lucky-orbs-cosmetics-v3';
 let state={};
+const defaultState={balance:200,rolls:0,lastWin:'—',seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),skins:['classic'],activeSkin:'classic',rollCost:5,currentScore:0,highScore:0};
 
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));state=s?{...defaultState,...s}:{...defaultState}}catch(e){state={...defaultState}}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
@@ -135,7 +134,9 @@ function rng(){const s=state.seed.split('').reduce((a,c)=>a+c.charCodeAt(0),0);c
 const shopItems=[
 {skin:'galaxy',price:150,img:'https://i.imgur.com/xyz1.png'},
 {skin:'lava',price:200,img:'https://i.imgur.com/xyz2.png'},
-{skin:'storm',price:300,img:'https://i.imgur.com/xyz3.png'}
+{skin:'storm',price:300,img:'https://i.imgur.com/xyz3.png'},
+{skin:'cosmic',price:500,img:'https://i.imgur.com/xyz4.png'},
+{skin:'void',price:800,img:'https://i.imgur.com/xyz5.png'}
 ];
 
 function populateShop(){
@@ -150,6 +151,7 @@ shopList.appendChild(div);
 }
 window.buySkin=function(skin,price){
 if(state.balance>=price){state.balance-=price;if(!state.skins.includes(skin))state.skins.push(skin);updateUI();save()}else alert('Not enough coins')}
+
 function pushLog(txt){const n=document.createElement('div');n.textContent=txt;n.style.padding='4px 0';logEl.prepend(n);while(logEl.childNodes.length>300)logEl.removeChild(logEl.lastChild)}
 
 function rollOnce(){
@@ -157,16 +159,21 @@ if(state.balance<state.rollCost){pushLog('Not enough coins');return}
 state.balance-=state.rollCost;state.rolls++;
 const r=Math.floor(rng()*100)+1;
 let points=0;let rarity='Common';
-if(r>=99){rarity='Mythic';points=Math.floor(Math.random()*500)+200}
-else if(r>=95){rarity='Legendary';points=Math.floor(Math.random()*150)+50}
-else if(r>=80){rarity='Epic';points=Math.floor(Math.random()*50)+15}
+
+// Probabilities adjusted for harder gains and negative rarities
+if(r>=99){rarity='Mythic';points=Math.floor(Math.random()*200)+50}
+else if(r>=95){rarity='Legendary';points=Math.floor(Math.random()*100)+30}
+else if(r>=80){rarity='Epic';points=Math.floor(Math.random()*40)+10}
 else if(r>=50){rarity='Rare';points=Math.floor(Math.random()*10)+5}
 else if(r>=45){rarity='Negarare';points=-Math.floor(Math.random()*10+5)}
-else if(r>=40){rarity='Negaepic';points=-Math.floor(Math.random()*50+15)}
-else if(r>=35){rarity='Negalegend';points=-Math.floor(Math.random()*150+50)}
-else{rarity='Negamythic';points=-Math.floor(Math.random()*500+200)}
+else if(r>=40){rarity='Negaepic';points=-Math.floor(Math.random()*40+10)}
+else if(r>=35){rarity='Negalegend';points=-Math.floor(Math.random()*100+30)}
+else{rarity='Negamythic';points=-Math.floor(Math.random()*200+50)}
 
 state.balance+=points;
+state.currentScore+=points;
+if(state.currentScore>state.highScore) state.highScore=state.currentScore;
+
 valueEl.textContent=r;
 rarityEl.textContent=rarity;
 state.lastWin=`${rarity} (${points>0?'+':'-'}${Math.abs(points)})`;
@@ -176,8 +183,25 @@ updateUI(); save();
 
 rollBtn.addEventListener('click',()=>rollOnce());
 multiBtn.addEventListener('click',()=>{for(let i=0;i<10;i++)rollOnce()});
-function updateUI(){balanceEl.textContent=state.balance;seedShort.textContent=state.seed.slice(0,6);document.getElementById('lastWin').textContent=state.lastWin}
+
+function updateUI(){
+balanceEl.textContent=state.balance;
+seedShort.textContent=state.seed.slice(0,6);
+document.getElementById('lastWin').textContent=state.lastWin;
+highScoreEl.textContent=state.highScore;
+}
+
 load();populateShop();updateUI();
+
+// Per-minute reset logic
+setInterval(()=>{
+state.currentScore=0;
+state.seed=(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8);
+pushLog('--- Minute Reset ---');
+updateUI();
+save();
+},60000);
+
 })();
 </script>
 </body>
