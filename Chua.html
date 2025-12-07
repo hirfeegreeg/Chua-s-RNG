@@ -41,9 +41,14 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 .log{height:240px;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;font-family:monospace;font-size:13px}
 .skin-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
 .skin-list div{display:flex;justify-content:space-between;align-items:center}
-@media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
+
 .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
 @keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg) scale(1)}}
+
+@keyframes rainbowMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.skin-animated{background-size:200% 200%;animation:rainbowMove 6s linear infinite}
+
+@media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 </style>
 </head>
 <body>
@@ -133,14 +138,20 @@ const generatedSkins={
 'rainbow':()=>`conic-gradient(red,orange,yellow,green,blue,indigo,violet)`,
 'lava':()=>`radial-gradient(circle at 50% 50%, #f87171, #b91c1c)`,
 'galaxy':()=>`radial-gradient(circle at 30% 30%, #0ea5a4,#3b82f6,#7c3aed)`,
-'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`
+'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`,
+'sunrise':()=>`radial-gradient(circle at 50% 50%, #fb923c,#fcd34d)`,
+'ocean':()=>`radial-gradient(circle at 50% 50%, #3b82f6,#06b6d4)`,
+'electric':()=>`repeating-conic-gradient(#22d3ee 0 15deg, #facc15 15deg 30deg)`
 };
 
 const shopItems=[
 {skin:'rainbow',price:150},
 {skin:'lava',price:200},
 {skin:'galaxy',price:300},
-{skin:'void',price:500}
+{skin:'void',price:500},
+{skin:'sunrise',price:400},
+{skin:'ocean',price:250},
+{skin:'electric',price:600}
 ];
 
 function populateShop(){
@@ -150,7 +161,7 @@ shopItems.forEach(i=>{
 if(!state.skinsOwned.includes(i.skin)){
 const div=document.createElement('div');
 div.className='shop-item';
-div.innerHTML=`<div class="skin-thumb" style="background:${generatedSkins[i.skin]()}"></div><div class="skin-meta">${i.skin} — ₱${i.price} <button class="btn btn-ghost">Buy</button></div>`;
+div.innerHTML=`<div class="skin-thumb skin-animated" style="background:${generatedSkins[i.skin]()}"></div><div class="skin-meta">${i.skin} — ₱${i.price} <button class="btn btn-ghost">Buy</button></div>`;
 div.querySelector('button').addEventListener('click',()=>buySkin(i.skin,i.price));
 shopList.appendChild(div);
 }
