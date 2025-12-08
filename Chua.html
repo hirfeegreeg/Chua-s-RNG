@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lucky Orbs v3.0 — Arcade Madness (Rarity Shop)</title>
+<title>Lucky Orbs v2.8 — Arcade Madness</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -16,7 +16,7 @@ body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#03121a 100%);color
 header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
 h1{margin:0;font-size:20px}
 p.lead{margin:0;color:var(--muted);font-size:13px}
-.layout{display:grid;grid-template-columns:320px 1fr 420px;gap:16px}
+.layout{display:grid;grid-template-columns:320px 1fr 360px;gap:16px}
 .card{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border:1px solid rgba(255,255,255,0.04);padding:16px;border-radius:var(--radius);box-shadow:0 10px 40px rgba(2,6,23,0.6);transition:all 0.3s ease}
 .left .profile{display:flex;align-items:center;gap:12px}
 .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0ea5a4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;transition:transform 0.3s ease}
@@ -37,10 +37,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 .rarity.Negaepic{background:rgba(200,0,0,0.35);color:#fff;}
 .rarity.Negalegend{background:rgba(255,0,0,0.45);color:#fff;}
 .rarity.Negamythic{background:rgba(255,0,0,0.55);color:#fff;animation:shake 0.3s infinite;}
-.rarity.Celestial{background:linear-gradient(90deg,#7f00ff,#00e5ff);color:#fff}
-.rarity.Godly{background:linear-gradient(90deg,#ff9a00,#ff2d88);color:#fff}
-.rarity.Negacelestial{background:rgba(150,0,200,0.35);color:#fff}
-.rarity.Negagodly{background:rgba(200,20,60,0.45);color:#fff}
+
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}}
 
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
@@ -73,9 +70,6 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 .minigame-container{margin-top:16px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.04);}
 .minigame-container h3{margin:0 0 8px 0;font-size:16px}
 .minigame-container button{margin:2px}
-.rarity-shop{display:grid;gap:8px;margin-top:8px}
-.rarity-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
-.rarity-row button{padding:6px 10px;border-radius:8px}
 @media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 </style>
 </head>
@@ -83,8 +77,8 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="app">
 <header>
   <div>
-    <h1>Lucky Orbs v3.0 — Arcade Madness</h1>
-    <p class="lead">Spin, gamble, and play separate minigames to boost points! Unlock rarities in the Rarity Shop (unlocks their negative counterparts at purchase).</p>
+    <h1>Lucky Orbs v2.8 — Arcade Madness</h1>
+    <p class="lead">Spin, gamble, and play separate minigames to boost points!</p>
   </div>
 </header>
 <div class="layout">
@@ -107,7 +101,7 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="controls">
 <button id="rollBtn" class="btn btn-primary">ROLL (₱<span id="rollCostDisplay">5</span>)</button>
 <button id="multiBtn" class="btn btn-ghost">×10</button>
-<button id="doubleBtn" class="btn btn-primary">DOUBLE OR NOTHING (LOCKED)</button>
+<button id="doubleBtn" class="btn btn-primary">DOUBLE OR NOTHING</button>
 <select id="skinPicker"></select>
 </div>
 
@@ -135,9 +129,6 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="muted">Cosmetic Shop</div>
 <div class="muted">Owned: <span id="ownedCount">0</span></div></div>
 <div id="shopList"></div>
-<hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0;border-radius:2px">
-<div class="muted">Rarity Shop</div>
-<div class="rarity-shop" id="rarityShop"></div>
 </aside>
 </div>
 </div>
@@ -158,257 +149,90 @@ const highScoreEl=document.getElementById('highScore');
 const ownedCountEl=document.getElementById('ownedCount');
 const skinPicker=document.getElementById('skinPicker');
 const achGrid=document.getElementById('achGrid');
-const rarityShopEl=document.getElementById('rarityShop');
 
 const coinFlipBtn=document.getElementById('coinFlipBtn');
 const jackpotWheelBtn=document.getElementById('jackpotWheelBtn');
 const slotMachineBtn=document.getElementById('slotMachineBtn');
 const diceRollBtn=document.getElementById('diceRollBtn');
 
-const KEY='lucky-orbs-v3.0-v3';
-const defaultState={
-  balance:200,
-  rolls:0,
-  lastWin:'—',
-  lastPoints:0,
-  seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),
-  skinsOwned:['classic','rainbow'],
-  activeSkin:'classic',
-  rollCost:5,
-  currentScore:0,
-  highScore:0,
-  // unlocked positive rarities only; negatives unlock automatically alongside purchase
-  unlockedPositives:['Common'], // user starts with only Common (and Negacommon implicitly)
-  doubleUnlocked:false,
-};
+const KEY='lucky-orbs-v2.8';
+const defaultState={balance:200,rolls:0,lastWin:'—',lastPoints:0,seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),
+skinsOwned:['classic','rainbow'],activeSkin:'classic',rollCost:5,currentScore:0,highScore:0};
 
 let state={};
 
-// Rarity definitions and costs (buying a positive unlocks both positive and negative)
-const rarityDefinitions = [
-  {id:'Common', cost:0, weight:60},
-  {id:'Rare', cost:500, weight:18},
-  {id:'Epic', cost:2000, weight:9},
-  {id:'Legendary', cost:10000, weight:6},
-  {id:'Mythic', cost:50000, weight:4},
-  {id:'Celestial', cost:250000, weight:2},
-  {id:'Godly', cost:1000000, weight:1}
-];
-
-// helper: given positive id return negative id name
-function negId(id){return 'Nega'+id.toLowerCase().replace(/^/, '').replace(/[^a-z0-9]/g,'');}
-// but for display we want e.g. Negacommon -> Negacommon (keep case tidy)
-function negDisplay(id){return 'Nega'+id;}
-
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));state=s?{...defaultState,...s}:{...defaultState}}catch(e){state={...defaultState}}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-
 function rng(){const s=state.seed.split('').reduce((a,c)=>a+c.charCodeAt(0),0);const t=performance.now();const x=Math.sin(t*0.000021+s)*10000;return x-Math.floor(x)}
 
-const generatedSkins={
-'classic':()=>`radial-gradient(circle at 30% 30%, #7c3aed,#3b82f6)`,
-'rainbow':()=>`conic-gradient(red,orange,yellow,green,blue,indigo,violet)`,
-'lava':()=>`radial-gradient(circle at 50% 50%, #f87171, #b91c1c)`,
-'galaxy':()=>`radial-gradient(circle at 30% 30%, #0ea5a4,#3b82f6,#7c3aed)`,
-'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`,
-'sunrise':()=>`radial-gradient(circle at 50% 50%, #fb923c,#fcd34d)`,
-'ocean':()=>`radial-gradient(circle at 50% 50%, #3b82f6,#06b6d4)`,
-'electric':()=>`repeating-conic-gradient(#22d3ee 0 15deg, #facc15 15deg 30deg)`,
-'firework':()=>`radial-gradient(circle at 50% 50%, #f43f5e,#fbbf24,#22d3ee)`,
-'neon':()=>`linear-gradient(45deg, #0ff,#f0f,#ff0,#0f0)`,
-'starry':()=>`radial-gradient(circle at 50% 50%, #fff,#06b6d4,#3b82f6)`
-};
+const generatedSkins={'classic':()=>`radial-gradient(circle at 30% 30%, #7c3aed,#3b82f6)`,'rainbow':()=>`conic-gradient(red,orange,yellow,green,blue,indigo,violet)`,'lava':()=>`radial-gradient(circle at 50% 50%, #f87171, #b91c1c)`,'galaxy':()=>`radial-gradient(circle at 30% 30%, #0ea5a4,#3b82f6,#7c3aed)`,'void':()=>`radial-gradient(circle at 50% 50%, #000000, #1e1e1e, #3b3b3b)`,'sunrise':()=>`radial-gradient(circle at 50% 50%, #fb923c,#fcd34d)`,'ocean':()=>`radial-gradient(circle at 50% 50%, #3b82f6,#06b6d4)`,'electric':()=>`repeating-conic-gradient(#22d3ee 0 15deg, #facc15 15deg 30deg)`,'firework':()=>`radial-gradient(circle at 50% 50%, #f43f5e,#fbbf24,#22d3ee)`,'neon':()=>`linear-gradient(45deg, #0ff,#f0f,#ff0,#0f0)`,'starry':()=>`radial-gradient(circle at 50% 50%, #fff,#06b6d4,#3b82f6)`};
 
-const shopItems=[
-  {skin:'rainbow',price:150},{skin:'lava',price:200},{skin:'galaxy',price:300},{skin:'void',price:500},
-  {skin:'sunrise',price:400},{skin:'ocean',price:250},{skin:'electric',price:600},{skin:'firework',price:700},
-  {skin:'neon',price:800},{skin:'starry',price:900}
-];
+const shopItems=[{skin:'rainbow',price:150},{skin:'lava',price:200},{skin:'galaxy',price:300},{skin:'void',price:500},{skin:'sunrise',price:400},{skin:'ocean',price:250},{skin:'electric',price:600},{skin:'firework',price:700},{skin:'neon',price:800},{skin:'starry',price:900}];
 
 function pushLog(txt){const n=document.createElement('div');n.textContent=txt;n.style.padding='4px 0';logEl.prepend(n);while(logEl.childNodes.length>300)logEl.removeChild(logEl.lastChild)}
 function showFloating(value,positive=true){const f=document.createElement('div');f.className='floating-number';f.style.color=positive?'#22c55e':'#f43f5e';f.textContent=(positive?'+':'-')+Math.abs(value);document.body.appendChild(f);const rect=orbEl.getBoundingClientRect();f.style.left=(rect.left+rect.width/2-20)+'px';f.style.top=(rect.top+rect.height/2-20)+'px';setTimeout(()=>document.body.removeChild(f),1000)}
 
-function unlockedRarities(){
-  // returns array of rarity ids (both positive and negative) currently available for rolls
-  const out=[];
-  state.unlockedPositives.forEach(p=>{
-    out.push(p);
-    out.push(negDisplay(p));
-  });
-  return out;
-}
-
-function unlockPositiveRarity(id){if(state.unlockedPositives.includes(id))return false;state.unlockedPositives.push(id);pushLog(`🔓 Unlocked ${id} rarity (and its negative counterpart)`);save();renderRarityShop();return true}
-
-function buildWeightedPool(){
-  // Collect the available positivity and negative rarities with weights
-  const pool=[];
-  const unlocked = state.unlockedPositives; // positive ids
-  // sum weights from definitions for unlocked positives
-  unlocked.forEach(p=>{
-    const def = rarityDefinitions.find(r=>r.id===p);
-    if(!def) return;
-    // positive entry
-    pool.push({id:def.id, weight:def.weight, positive:true});
-    // negative counterpart uses same weight (but will subtract points when rolled)
-    pool.push({id:negDisplay(def.id), weight:def.weight, positive:false});
-  });
-  return pool;
-}
-
-function pickFromPool(pool){
-  const total = pool.reduce((s,i)=>s+i.weight,0);
-  let r = Math.floor(rng()*total);
-  for(let i=0;i<pool.length;i++){
-    r -= pool[i].weight;
-    if(r<0) return pool[i];
-  }
-  return pool[pool.length-1];
-}
-
 function rollOnce(){
-  if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
-  state.balance-=state.rollCost;state.rolls++;
-  orbEl.classList.add('spin');
-  setTimeout(()=>orbEl.classList.remove('spin'),2600);
+if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
+state.balance-=state.rollCost;state.rolls++;
+orbEl.classList.add('spin');
+setTimeout(()=>orbEl.classList.remove('spin'),2600);
 
-  const pool = buildWeightedPool();
-  if(pool.length===0){pushLog('No rarities unlocked — this should not happen.');return}
-  const picked = pickFromPool(pool);
+const r=Math.floor(rng()*100)+1;
+let points=0;let rarity='Common';
+if(r>=99){rarity='Mythic';points=Math.floor(Math.random()*150)+100;}
+else if(r>=94){rarity='Legendary';points=Math.floor(Math.random()*70)+50;}
+else if(r>=79){rarity='Epic';points=Math.floor(Math.random()*35)+20;}
+else if(r>=50){rarity='Rare';points=Math.floor(Math.random()*15)+5;}
+else if(r>=45){rarity='Negarare';points=-Math.floor(Math.random()*8+5);}
+else if(r>=40){rarity='Negaepic';points=-Math.floor(Math.random()*25+15);}
+else if(r>=35){rarity='Negalegend';points=-Math.floor(Math.random()*60+35);}
+else{rarity='Negamythic';points=-Math.floor(Math.random()*150+100);}
 
-  // compute points by rarity (positive -> positive points, negative -> negative points)
-  let points=0; let rarityName='Common';
-  const positiveEquivalent = picked.positive ? picked.id : picked.id.replace(/^Nega/i,'');
-
-  // base points mapping by rarity
-  const pointsMap = {
-    'Common':()=>Math.floor(Math.random()*5)+2,
-    'Rare':()=>Math.floor(Math.random()*15)+8,
-    'Epic':()=>Math.floor(Math.random()*35)+20,
-    'Legendary':()=>Math.floor(Math.random()*70)+50,
-    'Mythic':()=>Math.floor(Math.random()*150)+100,
-    'Celestial':()=>Math.floor(Math.random()*400)+200,
-    'Godly':()=>Math.floor(Math.random()*1000)+500
-  };
-
-  if(pointsMap[positiveEquivalent]){points = pointsMap[positiveEquivalent]();} else {points= Math.floor(Math.random()*5)+2}
-  if(!picked.positive) points = -points; // negative counterpart
-
-  state.balance += points;
-  state.lastWin = points;
-  state.lastPoints = points;
-  state.currentScore += points;
-  if(state.currentScore>state.highScore) state.highScore=state.currentScore;
-
-  valueEl.textContent = points;
-  rarityEl.className = 'rarity '+(picked.positive?positiveEquivalent:'Nega'+positiveEquivalent);
-  rarityEl.textContent = picked.positive?positiveEquivalent:'Nega'+positiveEquivalent;
-  balanceEl.textContent=state.balance;
-  highScoreEl.textContent=state.highScore;
-  seedShort.textContent=state.seed.slice(0,6);
-  pushLog(`Rolled ${points} points (${picked.positive?positiveEquivalent:'Nega'+positiveEquivalent})`);
-  showFloating(points,points>0);
-  save();
+state.balance+=points; state.currentScore+=points; state.lastPoints=points;
+valueEl.textContent=r; rarityEl.textContent=rarity; rarityEl.className='rarity '+rarity;
+state.lastWin=`${rarity} (${points>0?'+':'-'}${Math.abs(points)})`;
+pushLog(`🎯 Roll: ${rarity} => ${points>0?'+':''}${points}`); showFloating(points,points>0); updateUI(); save();
 }
-
-function rollMulti(){for(let i=0;i<10;i++){setTimeout(rollOnce,i*300)}}
-
-function toggleDouble(){
-  if(!state.doubleUnlocked){pushLog('Double or Nothing not unlocked');return;}
-  const choice=confirm('Double or Nothing: current balance:'+state.balance+' Proceed?');if(!choice)return;
-  const win=rng()>0.5;
-  const delta=Math.floor(state.balance*(win?1:-1));state.balance+=delta;pushLog(`Double or Nothing ${win?'WON':'LOST'}: ${delta}`);balanceEl.textContent=state.balance;showFloating(delta,win);save();
+function updateUI(){
+balanceEl.textContent=state.balance; valueEl.textContent=state.lastWin; seedShort.textContent=state.seed.slice(0,6); highScoreEl.textContent=Math.max(state.currentScore,state.highScore);
+ownedCountEl.textContent=state.skinsOwned.length; achGrid.innerHTML='';
+state.skinsOwned.forEach(s=>{const d=document.createElement('div');d.textContent=s;achGrid.appendChild(d)});
+orbSkinEl.style.background=generatedSkins[state.activeSkin]();
+skinPicker.innerHTML='';shopItems.forEach(i=>{const o=document.createElement('option');o.value=i.skin;o.textContent=i.skin+' — ₱'+i.price;skinPicker.appendChild(o)});
 }
+rollBtn.addEventListener('click',rollOnce);
+multiBtn.addEventListener('click',()=>{for(let i=0;i<10;i++)rollOnce();});
+doubleBtn.addEventListener('click',()=>{const win=Math.random()<0.5; const pts=win?state.lastPoints*2:-state.lastPoints; state.balance+=pts; pushLog(`💥 Double or Nothing: ${win?'+':'-'}${Math.abs(pts)}`); showFloating(pts,pts>0); updateUI(); save();});
+skinPicker.addEventListener('change',()=>{state.activeSkin=skinPicker.value;updateUI();save();});
 
-function initShop(){
-  shopList.innerHTML='';
-  shopItems.forEach(item=>{
-    const div=document.createElement('div');div.className='shop-item';
-    const thumb=document.createElement('div');thumb.className='skin-thumb';thumb.style.background=generatedSkins[item.skin]();
-    const meta=document.createElement('div');meta.className='skin-meta';
-    const name=document.createElement('span');name.textContent=item.skin;
-    const price=document.createElement('span');price.textContent='₱'+item.price;
-    const buyBtn=document.createElement('button');buyBtn.className='btn btn-primary';buyBtn.textContent='BUY';
-    buyBtn.onclick=()=>{
-      if(state.balance<item.price){pushLog('Not enough coins for '+item.skin);return;}
-      state.balance-=item.price;state.skinsOwned.push(item.skin);state.activeSkin=item.skin;
-      orbSkinEl.style.background=generatedSkins[item.skin]();balanceEl.textContent=state.balance;pushLog(`Bought skin ${item.skin}`);save();updateShop();updatePicker();updateAchievements();
-    }
-    meta.appendChild(name);meta.appendChild(price);meta.appendChild(buyBtn);
-    div.appendChild(thumb);div.appendChild(meta);shopList.appendChild(div);
-  })
-  updateShop();
-}
+// Minigames
+coinFlipBtn.addEventListener('click',()=>{
+const guess=Math.random()<0.5?'Heads':'Tails'; const correct=Math.random()<0.5?'Heads':'Tails';
+let bonus=guess===correct?Math.floor(Math.abs(state.lastPoints)*1.5)+50:-Math.floor(Math.abs(state.lastPoints)/2);
+state.balance+=bonus; pushLog(`🪙 Coin Flip: ${bonus>0?'+':''}${bonus}`); showFloating(bonus,bonus>0); updateUI(); save();
+});
+jackpotWheelBtn.addEventListener('click',()=>{
+const outcomes=[{text:'+200',points:200},{text:'+500',points:500},{text:'-100',points:-100},{text:'Rare Skin!',skin:'lava'},{text:'Epic Skin!',skin:'galaxy'},{text:'Nothing',points:0},{text:'Negamythic Penalty',points:-200}];
+const r=outcomes[Math.floor(Math.random()*outcomes.length)];
+if(r.points){state.balance+=r.points; showFloating(r.points,r.points>0);}
+if(r.skin&&!state.skinsOwned.includes(r.skin)){state.skinsOwned.push(r.skin);pushLog(`🎁 Jackpot! Obtained ${r.skin} skin!`);}
+pushLog(`🎡 Jackpot Wheel: ${r.text}`); updateUI(); save();
+});
+slotMachineBtn.addEventListener('click',()=>{
+const symbols=['🍒','🍋','⭐','💎','7️⃣']; let reels=[symbols[Math.floor(Math.random()*symbols.length)],symbols[Math.floor(Math.random()*symbols.length)],symbols[Math.floor(Math.random()*symbols.length)]]; let points=0;
+if(reels[0]===reels[1]&&reels[1]===reels[2]) points=300;
+else if(reels[0]===reels[1]||reels[1]===reels[2]) points=100;
+else points=-50;
+state.balance+=points; pushLog(`🎰 Slot [${reels.join('|')}]: ${points>0?'+':''}${points}`); showFloating(points,points>0); updateUI(); save();
+});
+diceRollBtn.addEventListener('click',()=>{
+const roll=Math.floor(Math.random()*6)+1; let points=0;
+if(roll>=5) points=roll*20; else points=-roll*10;
+state.balance+=points; pushLog(`🎲 Dice Roll: ${roll} => ${points>0?'+':''}${points}`); showFloating(points,points>0); updateUI(); save();
+});
 
-function updateShop(){ownedCountEl.textContent=state.skinsOwned.length}
-
-function updatePicker(){skinPicker.innerHTML='';state.skinsOwned.forEach(skin=>{
-  const opt=document.createElement('option');opt.value=skin;opt.textContent=skin;skinPicker.appendChild(opt)
-});skinPicker.value=state.activeSkin}
-
-function updateAchievements(){achGrid.innerHTML='';state.skinsOwned.forEach(skin=>{
-  const div=document.createElement('div');div.textContent=skin;achGrid.appendChild(div)
-})}
-
-// Rarity shop render
-function renderRarityShop(){
-  rarityShopEl.innerHTML='';
-  rarityDefinitions.forEach(def=>{
-    const row=document.createElement('div');row.className='rarity-row';
-    const label=document.createElement('div');
-    const unlocked = state.unlockedPositives.includes(def.id);
-    label.innerHTML = `<strong>${def.id}</strong><div style="font-size:12px;color:var(--muted)">Price: ₱${def.cost} — Weight: ${def.weight}</div>`;
-    const btn=document.createElement('button');
-    btn.className='btn btn-primary';
-    btn.disabled = unlocked || state.balance < def.cost;
-    btn.textContent = unlocked ? 'OWNED' : 'BUY';
-    btn.onclick = ()=>{
-      if(unlocked) return; if(state.balance < def.cost){pushLog('Not enough for '+def.id);return}
-      if(!confirm(`Buy ${def.id} rarity for ₱${def.cost}? This will also unlock its negative counterpart.`)) return;
-      state.balance -= def.cost; unlockPositiveRarity(def.id); balanceEl.textContent=state.balance; save(); renderRarityShop();
-    };
-    row.appendChild(label);row.appendChild(btn);rarityShopEl.appendChild(row);
-  });
-  // Double or Nothing special entry
-  const dblRow=document.createElement('div');dblRow.className='rarity-row';
-  const dblLabel=document.createElement('div');dblLabel.innerHTML=`<strong>Double or Nothing</strong><div style="font-size:12px;color:var(--muted)">Unlock cost: ₱1,000,000</div>`;
-  const dblBtn=document.createElement('button');dblBtn.className='btn btn-primary';dblBtn.disabled = state.doubleUnlocked || state.balance < 1000000;
-  dblBtn.textContent = state.doubleUnlocked ? 'OWNED' : 'BUY';
-  dblBtn.onclick = ()=>{
-    if(state.doubleUnlocked) return; if(state.balance < 1000000){pushLog('Not enough for Double or Nothing');return}
-    if(!confirm('Unlock Double or Nothing for ₱1,000,000?')) return;
-    state.balance -= 1000000; state.doubleUnlocked = true; pushLog('Double or Nothing unlocked!'); balanceEl.textContent=state.balance; save(); renderRarityShop();
-  }
-  dblRow.appendChild(dblLabel); dblRow.appendChild(dblBtn); rarityShopEl.appendChild(dblRow);
-}
-
-// --- Minigames ---
-function coinFlip(){const win=rng()>0.5?1:-1;const amt=Math.floor(Math.random()*20)+5;state.balance+=amt*win;pushLog(`Coin Flip: ${win>0?'WIN':'LOSE'} ${amt*win}`);balanceEl.textContent=state.balance;showFloating(amt*win,win>0);save();}
-function jackpotWheel(){const amt=Math.floor(Math.random()*150)-50;state.balance+=amt;pushLog(`Jackpot Wheel: ${amt>0?'WIN':'LOSE'} ${amt}`);balanceEl.textContent=state.balance;showFloating(amt,amt>0);save();}
-function slotMachine(){const symbols=['🍒','🍋','⭐','💎','7️⃣'];const s1=symbols[Math.floor(rng()*symbols.length)];const s2=symbols[Math.floor(rng()*symbols.length)];const s3=symbols[Math.floor(rng()*symbols.length)];pushLog(`Slot: ${s1}|${s2}|${s3}`);let amt=0;if(s1===s2&&s2===s3){amt=200;pushLog('JACKPOT! +200');}else if(s1===s2||s2===s3||s1===s3){amt=50;pushLog('Small Win +50');}state.balance+=amt;balanceEl.textContent=state.balance;showFloating(amt,true);save();}
-function diceRoll(){const roll=Math.floor(rng()*6)+1;const amt=roll*10;state.balance+=amt;pushLog(`Dice Roll: ${roll} +${amt}`);balanceEl.textContent=state.balance;showFloating(amt,true);save();}
-
-rollBtn.onclick=rollOnce;
-multiBtn.onclick=rollMulti;
-doubleBtn.onclick=toggleDouble;
-skinPicker.onchange=changeSkin;
-coinFlipBtn.onclick=coinFlip;
-jackpotWheelBtn.onclick=jackpotWheel;
-slotMachineBtn.onclick=slotMachine;
-diceRollBtn.onclick=diceRoll;
-
-function changeSkin(){state.activeSkin=skinPicker.value;orbSkinEl.style.background=generatedSkins[state.activeSkin]();save()}
-
-// Init
-load();balanceEl.textContent=state.balance;valueEl.textContent='—';rarityEl.textContent='—';seedShort.textContent=state.seed.slice(0,6);
-orbSkinEl.style.background=generatedSkins[state.activeSkin]();updatePicker();updateAchievements();initShop();renderRarityShop();
-
-// auto-unlock Negacommon because Common starts available
-if(!state.unlockedPositives.includes('Common')){state.unlockedPositives.unshift('Common');save();}
-if(state.balance>1000&&!state.doubleUnlocked){/* keep double locked until purchase cost */}
-
-function updatePicker(){skinPicker.innerHTML='';state.skinsOwned.forEach(skin=>{const opt=document.createElement('option');opt.value=skin;opt.textContent=skin;skinPicker.appendChild(opt)});skinPicker.value=state.activeSkin}
-
+load(); updateUI();
 })();
 </script>
 </body>
