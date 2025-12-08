@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lucky Orbs v2.7 — Minigame Madness</title>
+<title>Lucky Orbs v2.8 — Upgradable Orb</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -37,39 +37,33 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 .rarity.Negaepic{background:rgba(200,0,0,0.35);color:#fff;}
 .rarity.Negalegend{background:rgba(255,0,0,0.45);color:#fff;}
 .rarity.Negamythic{background:rgba(255,0,0,0.55);color:#fff;animation:shake 0.3s infinite;}
-
+.rarity.Negacommon{background:rgba(255,0,0,0.12);color:#fff;} /* newly added */
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}}
-
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:all 0.2s ease}
 .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;box-shadow:0 14px 36px rgba(124,58,237,0.14)}
 .btn-primary:hover{transform:scale(1.05)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
 .btn-ghost:hover{background:rgba(255,255,255,0.05);transform:scale(1.05)}
-
 .shop-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);transition:all 0.2s ease}
-.shop-item:hover{background:rgba(255,255,255,0.03);transform:translateY(-2px);}
+.shop-item:hover{background:rgba(255,255,255,0.03);transform:translateY(-2px);} 
 .skin-thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.03);background-size:cover;transition:all 0.3s ease}
 .skin-thumb:hover{transform:scale(1.1)}
 .skin-meta{flex:1;display:flex;justify-content:space-between;align-items:center}
-
 .log{height:240px;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;font-family:monospace;font-size:13px}
 .skin-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
 .skin-list div{display:flex;justify-content:space-between;align-items:center;transition:all 0.2s ease}
 .skin-list div:hover{background:rgba(255,255,255,0.03);border-radius:8px}
-
 .orb.spin .skin{animation:orbSpin 2.6s cubic-bezier(.2,.9,.2,1)}
 @keyframes orbSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.05)}100%{transform:rotate(360deg) scale(1)}}
-
 @keyframes rainbowMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .skin-animated{background-size:200% 200%;animation:rainbowMove 6s linear infinite}
-
 .floating-number{position:absolute;font-weight:800;font-size:20px;color:#fff;pointer-events:none;animation:floatUp 1s forwards;}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0px)}100%{opacity:0;transform:translateY(-60px)}}
-
 .minigame-popup{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);padding:16px;border-radius:12px;display:none;flex-direction:column;align-items:center;gap:8px;z-index:100;}
 .minigame-popup button{margin-top:6px;}
-
+.orb-meta{display:flex;gap:8px;align-items:center;margin-top:8px}
+.orb-level{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-weight:800}
 @media (max-width:1100px){.layout{grid-template-columns:1fr;}.orb{--orb-size:180px}}
 </style>
 </head>
@@ -77,8 +71,8 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <div class="app">
 <header>
   <div>
-    <h1>Lucky Orbs v2.7 — Minigame Madness</h1>
-    <p class="lead">Spin, gamble, and unlock minigames inside the orb!</p>
+    <h1>Lucky Orbs v2.8 — Upgradable Orb</h1>
+    <p class="lead">Upgrade your orb to unlock better rarities — progression gives goals!</p>
   </div>
 </header>
 <div class="layout">
@@ -110,6 +104,8 @@ p.lead{margin:0;color:var(--muted);font-size:13px}
 <button id="multiBtn" class="btn btn-ghost">×10</button>
 <button id="doubleBtn" class="btn btn-primary">DOUBLE OR NOTHING</button>
 <select id="skinPicker"></select>
+<button id="upgradeBtn" class="btn btn-primary">Upgrade Orb (₱<span id="upgradeCost">100</span>)</button>
+<div class="orb-meta"><div class="orb-level">Orb Lvl: <span id="orbLevel">1</span></div></div>
 </div>
 <div style="display:flex;gap:12px;justify-content:space-between;width:100%;margin-top:10px">
 <div class="muted">Last Win: <span id="lastWin">—</span></div>
@@ -149,10 +145,12 @@ const minigamePopup=document.getElementById('minigamePopup');
 const minigameTitle=document.getElementById('minigameTitle');
 const minigameContent=document.getElementById('minigameContent');
 const minigameAction=document.getElementById('minigameAction');
+const upgradeBtn=document.getElementById('upgradeBtn');
+const orbLevelEl=document.getElementById('orbLevel');
 
-const KEY='lucky-orbs-v2.7';
+const KEY='lucky-orbs-v2.8';
 const defaultState={balance:200,rolls:0,lastWin:'—',lastPoints:0,seed:(new Date().getTime()+Math.floor(Math.random()*1e9)).toString(36).slice(0,8),
-skinsOwned:['classic','rainbow'],activeSkin:'classic',rollCost:5,currentScore:0,highScore:0};
+skinsOwned:['classic','rainbow'],activeSkin:'classic',rollCost:5,currentScore:0,highScore:0,orbLevel:1};
 let state={};
 
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));state=s?{...defaultState,...s}:{...defaultState}}catch(e){state={...defaultState}}}
@@ -193,41 +191,93 @@ function showFloating(value,positive=true){
   setTimeout(()=>document.body.removeChild(f),1000);
 }
 
+// RARITY / PROGRESSION CONFIG
+// levels 1..5
+const RARITY_CONFIG = {
+  1: [
+    {id:'Common', weight:100}
+  ],
+  2: [
+    {id:'Common', weight:80},
+    {id:'Rare', weight:15},
+    {id:'Negacommon', weight:5}
+  ],
+  3: [
+    {id:'Common', weight:60},
+    {id:'Rare', weight:20},
+    {id:'Epic', weight:15},
+    {id:'Negarare', weight:5}
+  ],
+  4: [
+    {id:'Common', weight:45},
+    {id:'Rare', weight:20},
+    {id:'Epic', weight:20},
+    {id:'Legendary', weight:10},
+    {id:'Negalegend', weight:5}
+  ],
+  5: [
+    {id:'Common', weight:30},
+    {id:'Rare', weight:20},
+    {id:'Epic', weight:20},
+    {id:'Legendary', weight:9},
+    {id:'Mythic', weight:10},
+    {id:'Negamythic', weight:1}
+  ]
+};
+
+function chooseRarity(level){
+  const arr = RARITY_CONFIG[level] || RARITY_CONFIG[1];
+  const total = arr.reduce((s,i)=>s+i.weight,0);
+  let r = Math.floor(rng()*total);
+  for(let i=0;i<arr.length;i++){
+    if(r < arr[i].weight) return arr[i].id;
+    r -= arr[i].weight;
+  }
+  return arr[arr.length-1].id;
+}
+
+function getPointsForRarity(id){
+  switch(id){
+    case 'Common': return Math.floor(Math.random()*8)+5; // +5..12
+    case 'Rare': return Math.floor(Math.random()*30)+15; // +15..44
+    case 'Epic': return Math.floor(Math.random()*60)+35; // +35..94
+    case 'Legendary': return Math.floor(Math.random()*120)+50; // +50..169
+    case 'Mythic': return Math.floor(Math.random()*250)+120; // +120..369
+    case 'Negacommon': return -Math.floor(Math.random()*8)-4; // -5..-12
+    case 'Negarare': return -Math.floor(Math.random()*25)-12; // -13..-37
+    case 'Negaepic': return -Math.floor(Math.random()*60)-20; // -20..-79
+    case 'Negalegend': return -Math.floor(Math.random()*120)-40; // -40..-159
+    case 'Negamythic': return -Math.floor(Math.random()*300)-100; // -100..-399
+    default: return 0;
+  }
+}
+
 // --- Core Roll ---
 function rollOnce(){
-if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
-state.balance-=state.rollCost;state.rolls++;
-orbEl.classList.add('spin');
-setTimeout(()=>orbEl.classList.remove('spin'),2600);
+  if(state.balance<state.rollCost){pushLog('Not enough coins');return;}
+  state.balance-=state.rollCost;state.rolls++;
+  orbEl.classList.add('spin');
+  setTimeout(()=>orbEl.classList.remove('spin'),2600);
 
-const r=Math.floor(rng()*100)+1;
-let points=0;let rarity='Common';
+  const rarity = chooseRarity(state.orbLevel);
+  let points = getPointsForRarity(rarity);
 
-if(r>=99){rarity='Mythic';points=Math.floor(Math.random()*150)+100; playTone(1200,300);}
-else if(r>=94){rarity='Legendary';points=Math.floor(Math.random()*70)+50; playTone(1000,250);}
-else if(r>=79){rarity='Epic';points=Math.floor(Math.random()*35)+20; playTone(800,200);}
-else if(r>=50){rarity='Rare';points=Math.floor(Math.random()*15)+5; playTone(500,150);}
-else if(r>=45){rarity='Negarare';points=-Math.floor(Math.random()*8+5); playTone(350,100);}
-else if(r>=40){rarity='Negaepic';points=-Math.floor(Math.random()*25+15); playTone(250,120);}
-else if(r>=35){rarity='Negalegend';points=-Math.floor(Math.random()*60+35); playTone(150,180);}
-else{rarity='Negamythic';points=-Math.floor(Math.random()*150+100); playTone(60,300);} 
+  // small chance to double points (lucky spin)
+  if(Math.random()<0.05){points = Math.round(points*2); pushLog('💥 Lucky Spin Bonus Activated!'); playTone(1500,300);}
 
-// Lucky Spin Bonus
-if(Math.random()<0.05){points*=2;pushLog('💥 Lucky Spin Bonus Activated!');playTone(1500,300);}
+  // Minigame Chance: 10%
+  if(Math.random()<0.1){triggerMinigame();}
 
-// Minigame Chance: 10%
-if(Math.random()<0.1){triggerMinigame();}
-
-state.balance+=points;
-state.currentScore+=points;
-state.lastPoints=points;
-valueEl.textContent=r;
-rarityEl.textContent=rarity;
-rarityEl.className='rarity '+rarity;
-state.lastWin=`${rarity} (${points>0?'+':'-'}${Math.abs(points)})`;
-pushLog(`#${state.rolls}: ${rarity} ${points>0?'+':'-'}${Math.abs(points)}`);
-showFloating(points,points>0);
-updateUI(); save();
+  state.balance+=points;
+  state.currentScore+=points;
+  state.lastPoints=points;
+  valueEl.textContent = rarity;
+  rarityEl.textContent = rarity;
+  rarityEl.className='rarity '+rarity;
+  state.lastWin=`${rarity} (${points>0?'+':'-'}${Math.abs(points)})`;
+  pushLog(`#${state.rolls}: ${rarity} ${points>0?'+':'-'}${Math.abs(points)}`);
+  showFloating(points,points>0);
+  updateUI(); save();
 }
 
 // DOUBLE OR NOTHING
@@ -287,17 +337,40 @@ function playJackpotWheel(){
     {text:'Negamythic Penalty',points:-200}
   ];
   const result=outcomes[Math.floor(Math.random()*outcomes.length)];
-  if(result.points){state.balance+=result.points;showFloating(result.points,result.points>0);}
-  if(result.skin&&!state.skinsOwned.includes(result.skin)){state.skinsOwned.push(result.skin);pushLog(`🎁 Jackpot! Obtained ${result.skin} skin!`);}
+  if(result.points){state.balance+=result.points;showFloating(result.points,result.points>0);} 
+  if(result.skin&&!state.skinsOwned.includes(result.skin)){state.skinsOwned.push(result.skin);pushLog(`🎁 Jackpot! Obtained ${result.skin} skin!`);} 
   pushLog(`🎡 Jackpot Wheel: ${result.text}`);
   minigamePopup.style.display='none';updateUI(); save();
 }
 
+// --- Orb Upgrade ---
+function upgradeCostForLevel(lvl){
+  // cost to upgrade FROM lvl to lvl+1
+  return Math.floor(100 * Math.pow(1.8, lvl-1));
+}
+
+upgradeBtn.addEventListener('click',()=>{
+  const lvl = state.orbLevel || 1;
+  if(lvl >= 5){pushLog('Orb is already at max level.'); return;}
+  const cost = upgradeCostForLevel(lvl);
+  if(state.balance < cost){pushLog('Not enough coins to upgrade orb.'); alert('Not enough coins to upgrade orb.'); return;}
+  state.balance -= cost;
+  state.orbLevel = lvl + 1;
+  pushLog(`✨ Orb upgraded to Level ${state.orbLevel}!`);
+  playTone(1000,200);
+  updateUI(); save();
+});
+
 // --- Populate UI ---
 function populateSkinPicker(){skinPicker.innerHTML='';state.skinsOwned.forEach(skin=>{const opt=document.createElement('option');opt.value=skin; opt.textContent=skin; skinPicker.appendChild(opt);});skinPicker.value=state.activeSkin;skinPicker.onchange=()=>{state.activeSkin=skinPicker.value;updateUI();save();}}
 function populateOwnedSkins(){achGrid.innerHTML='';state.skinsOwned.forEach(skin=>{const div=document.createElement('div');div.innerHTML=`${skin} <button class="btn btn-ghost">Equip</button>`;div.querySelector('button').addEventListener('click',()=>{state.activeSkin=skin;updateUI();save();state.activeSkin=skin;});achGrid.appendChild(div);})}
-function populateShop(){const shopList=document.getElementById('shopList');shopList.innerHTML='';shopItems.forEach(i=>{if(!state.skinsOwned.includes(i.skin)){const div=document.createElement('div');div.className='shop-item';div.innerHTML=`<div class="skin-thumb skin-animated" style="background:${generatedSkins[i.skin]()}"></div><div class="skin-meta">${i.skin} — ₱${i.price} <button class="btn btn-ghost">Buy</button></div>`;div.querySelector('button').addEventListener('click',()=>{if(state.balance>=i.price){state.balance-=i.price;state.skinsOwned.push(i.skin);pushLog('Bought '+i.skin);updateUI();save();}else alert('Not enough coins');});shopList.appendChild(div);}})}
-function updateUI(){balanceEl.textContent=state.balance;seedShort.textContent=state.seed.slice(0,6);document.getElementById('lastWin').textContent=state.lastWin;highScoreEl.textContent=state.highScore;ownedCountEl.textContent=state.skinsOwned.length;orbSkinEl.style.background=generatedSkins[state.activeSkin]();populateSkinPicker();populateOwnedSkins();populateShop();}
+function populateShop(){const shopList=document.getElementById('shopList');shopList.innerHTML='';shopItems.forEach(i=>{if(!state.skinsOwned.includes(i.skin)){const div=document.createElement('div');div.className='shop-item';div.innerHTML=`<div class="skin-thumb skin-animated" style="background:${generatedSkins[i.skin]()}" ></div><div class="skin-meta">${i.skin} — ₱${i.price} <button class="btn btn-ghost">Buy</button></div>`;div.querySelector('button').addEventListener('click',()=>{if(state.balance>=i.price){state.balance-=i.price;state.skinsOwned.push(i.skin);pushLog('Bought '+i.skin);updateUI();save();}else alert('Not enough coins');});shopList.appendChild(div);}})}
+
+function updateUI(){
+  balanceEl.textContent=state.balance;seedShort.textContent=state.seed.slice(0,6);document.getElementById('lastWin').textContent=state.lastWin;highScoreEl.textContent=state.highScore;ownedCountEl.textContent=state.skinsOwned.length;orbSkinEl.style.background=generatedSkins[state.activeSkin]();populateSkinPicker();populateOwnedSkins();populateShop();
+  orbLevelEl.textContent = state.orbLevel || 1;
+  document.getElementById('upgradeCost').textContent = upgradeCostForLevel(state.orbLevel || 1);
+}
 
 load();updateUI();
 
